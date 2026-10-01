@@ -6,7 +6,7 @@ const initialLesson = courseData.modules[0].lessons[0];
 ---
 
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,10 +14,13 @@ const initialLesson = courseData.modules[0].lessons[0];
   <meta name="description" content="Curso interativo de técnica vocal aplicada ao louvor com a Prof.ª Paula Santana. 8 módulos, 58 aulas, mais de 70 ilustrações anatômicas e apostila em PDF de 144 páginas.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
+  <!-- Pré-carregamento da Fonte Oficial Amsterdam Four -->
+  <link rel="preload" href="/fonts/amsterdam-four-ttf.ttf" as="font" type="font/ttf" crossorigin>
+
   <!-- Fontes e Ícones -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
@@ -271,12 +274,12 @@ const initialLesson = courseData.modules[0].lessons[0];
         <div class="home-hero-card">
           <div class="home-hero-content">
             <div class="home-hero-badge">
-              <i class="fas fa-award"></i> Igreja Cristã Maranata • Técnica Vocal
+              <i class="fas fa-church"></i> Igreja Cristã Maranata • Técnica Vocal
             </div>
             <div class="home-hero-title-script">Pra Teu Louvor</div>
-            <div class="home-hero-sub-gold">Curso Completo de Canto com a Prof.ª Paula Santana</div>
+            <div class="home-hero-sub-gold">Aulas de Canto</div>
             <p class="home-hero-sub">
-              Uma abordagem didática completa que une a ciência da fisiologia vocal à reverência do louvor congregacional. São 8 módulos estruturados, cobrindo da respiração costodiafragmática ao apoio, registros vocais e interpretação dos hinos do culto.
+              Curso Completo de Técnica Vocal com a <strong>Prof.ª Paula Santana</strong>. Uma abordagem didática completa que une a ciência da fisiologia vocal à reverência do louvor congregacional em 8 módulos estruturados e 58 aulas.
             </p>
             <div class="home-hero-actions">
               <button class="btn-hero-primary" onclick="startOrResumeCourse()">
@@ -528,7 +531,7 @@ const initialLesson = courseData.modules[0].lessons[0];
     // Estado Global da Aplicação LMS
     const AppState = {
       currentLessonId: localStorage.getItem("ptl-last-lesson") || "aula-1",
-      theme: localStorage.getItem("ptl-theme") || "light",
+      theme: localStorage.getItem("ptl-theme") || "dark",
       completedLessons: JSON.parse(localStorage.getItem("ptl-completed") || '[]'),
       favoriteLessons: JSON.parse(localStorage.getItem("ptl-favorites") || '[]'),
       sidebarFilter: "all",

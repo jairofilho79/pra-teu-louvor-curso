@@ -101,16 +101,10 @@ const initialLesson = courseData.modules[0].lessons[0];
           <div class="progress-meta-row">
             <span id="lmsProgressCount">0 de {totalLessons} concluídas</span>
             <button class="btn-sidebar-progress-link" onclick="openSyncModal()">
-              <i class="fas fa-arrow-up-right-from-square"></i> Mudar aparelho
+              <i class="fas fa-chart-line"></i> Meu Progresso
             </button>
           </div>
         </div>
-
-        <!-- Botão Apresentação do Curso -->
-        <button class="sidebar-home-btn" id="sidebarHomeBtn" onclick="showCourseHome()">
-          <i class="fas fa-house-chimney"></i>
-          <span>Apresentação do Curso</span>
-        </button>
 
         <!-- Campo de Busca de Aulas -->
         <div class="sidebar-search-wrap">
@@ -282,8 +276,8 @@ const initialLesson = courseData.modules[0].lessons[0];
               Curso Completo de Técnica Vocal com a <strong>Prof.ª Paula Santana</strong>. Uma abordagem didática completa que une a ciência da fisiologia vocal à reverência do louvor congregacional em 8 módulos estruturados e 58 aulas.
             </p>
             <div class="home-hero-actions">
-              <button class="btn-hero-primary" onclick="startOrResumeCourse()">
-                <i class="fas fa-play"></i> Iniciar o Curso (Aula 1)
+              <button class="btn-hero-primary" id="heroStartResumeBtn" onclick="startOrResumeCourse()">
+                <i class="fas fa-play" id="heroStartResumeIcon"></i> <span id="heroStartResumeText">Iniciar o Curso (Aula 1)</span>
               </button>
               <a href="/apostila.pdf" download="Apostila-Pra-Teu-Louvor-144-paginas.pdf" target="_blank" class="btn-hero-secondary">
                 <i class="fas fa-file-pdf"></i> Baixar Apostila em PDF (144 págs)
@@ -542,9 +536,9 @@ const initialLesson = courseData.modules[0].lessons[0];
     // Inicialização ao carregar a página
     document.addEventListener("DOMContentLoaded", () => {
       initTheme();
-      initRouting();
-      renderCurrentLesson();
       updateAllProgressIndicators();
+      updateHeroActionButtons();
+      initRouting();
       checkUrlSync();
       setupKeyListeners();
     });
@@ -579,12 +573,27 @@ const initialLesson = courseData.modules[0].lessons[0];
       if (hash.startsWith("#aula=")) {
         const id = hash.replace("#aula=", "");
         if (getLessonById(id)) {
-          AppState.currentLessonId = id;
+          selectLesson(id, false);
+          return;
         }
-      } else if (hash === "#apresentacao") {
+      }
+      
+      // Página Inicial Padrão: Sempre a Apresentação do Curso (Porta de Entrada)
+      showCourseHome(false);
+    }
+
+    // Suporte ao botão voltar/avançar do navegador
+    window.addEventListener("hashchange", () => {
+      const hash = window.location.hash;
+      if (hash.startsWith("#aula=")) {
+        const id = hash.replace("#aula=", "");
+        if (getLessonById(id) && (AppState.currentLessonId !== id || document.getElementById("lmsClassroomView").style.display === "none")) {
+          selectLesson(id, false);
+        }
+      } else if (hash === "" || hash === "#apresentacao") {
         showCourseHome(false);
       }
-    }
+    });
 
     function getLessonById(id) {
       if (!window.COURSE_DATA) return null;
@@ -595,15 +604,20 @@ const initialLesson = courseData.modules[0].lessons[0];
       return null;
     }
 
-    function selectLesson(lessonId) {
+    function selectLesson(lessonId, updateHash = true) {
       AppState.currentLessonId = lessonId;
+      localStorage.setItem("ptl-started", "true");
       localStorage.setItem("ptl-last-lesson", lessonId);
-      window.location.hash = `#aula=${lessonId}`;
+      if (updateHash) {
+        window.location.hash = `#aula=${lessonId}`;
+      }
 
       // Alterna para visualização de sala de aula
       document.getElementById("lmsHomeView").style.display = "none";
       document.getElementById("lmsClassroomView").style.display = "block";
-      document.getElementById("sidebarHomeBtn").classList.remove("active");
+      
+      const homeBtn = document.getElementById("sidebarHomeBtn");
+      if (homeBtn) homeBtn.classList.remove("active");
 
       // Abre o módulo correspondente na sidebar se estiver fechado
       const lessonInfo = getLessonById(lessonId);
@@ -615,6 +629,7 @@ const initialLesson = courseData.modules[0].lessons[0];
       }
 
       renderCurrentLesson();
+      updateHeroActionButtons();
       closeMobileSidebar();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -622,17 +637,46 @@ const initialLesson = courseData.modules[0].lessons[0];
     function showCourseHome(updateHash = true) {
       document.getElementById("lmsHomeView").style.display = "block";
       document.getElementById("lmsClassroomView").style.display = "none";
-      document.getElementById("sidebarHomeBtn").classList.add("active");
+      
+      const homeBtn = document.getElementById("sidebarHomeBtn");
+      if (homeBtn) homeBtn.classList.add("active");
       
       document.querySelectorAll(".lesson-nav-item").forEach(el => el.classList.remove("active"));
-      if (updateHash) window.location.hash = "#apresentacao";
+      if (updateHash) {
+        if (window.location.hash !== "#apresentacao" && window.location.hash !== "") {
+          window.location.hash = "#apresentacao";
+        }
+      }
+      updateHeroActionButtons();
       closeMobileSidebar();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function startOrResumeCourse() {
-      const target = AppState.currentLessonId || "aula-1";
+      const target = localStorage.getItem("ptl-last-lesson") || AppState.currentLessonId || "aula-1";
+      localStorage.setItem("ptl-started", "true");
       selectLesson(target);
+    }
+
+    function updateHeroActionButtons() {
+      const btnText = document.getElementById("heroStartResumeText");
+      const btnIcon = document.getElementById("heroStartResumeIcon");
+      if (!btnText) return;
+
+      const hasStarted = localStorage.getItem("ptl-started") === "true" ||
+                         (AppState.completedLessons && AppState.completedLessons.length > 0) ||
+                         (localStorage.getItem("ptl-last-lesson") !== null);
+
+      if (hasStarted) {
+        const targetId = localStorage.getItem("ptl-last-lesson") || AppState.currentLessonId || "aula-1";
+        const lessonInfo = getLessonById(targetId);
+        const lessonNum = lessonInfo ? (lessonInfo.lesson.number || targetId.replace("aula-", "")) : "1";
+        btnText.textContent = `Continuar o Curso (Aula ${lessonNum})`;
+        if (btnIcon) btnIcon.className = "fas fa-play";
+      } else {
+        btnText.textContent = "Iniciar o Curso (Aula 1)";
+        if (btnIcon) btnIcon.className = "fas fa-play";
+      }
     }
 
     // ------------------------------------------------------------------------
@@ -937,6 +981,8 @@ const initialLesson = courseData.modules[0].lessons[0];
       // Contador de favoritas
       const favCountEl = document.getElementById("sidebarFavCount");
       if (favCountEl) favCountEl.textContent = AppState.favoriteLessons.length;
+
+      updateHeroActionButtons();
     }
 
     // ------------------------------------------------------------------------

@@ -1,0 +1,443 @@
+---
+// src/components/CourseHome.astro
+---
+
+<div class="course-home-wrapper">
+  <!-- Apresentação & História -->
+  <section class="home-section intro-card">
+    <div class="intro-badge">🏛️ Igreja Cristã Maranata · Ministério de Louvor</div>
+    <h2>A História da Apostila e do Curso Digital</h2>
+    <div class="intro-text">
+      <p>
+        O projeto <strong>Pra Teu Louvor</strong> nasceu das aulas semanais ministradas pela 
+        <strong>Prof.ª Paula Santana</strong>, transmitidas pelo canal oficial da Igreja Cristã Maranata no YouTube e TV Manaim. 
+        Com um enfoque prático, fisiológico e centrado na transmissão da mensagem sagrada no culto, o programa revolucionou a preparação 
+        técnica de coristas, solistas e grupos de louvor em todo o Brasil e no exterior.
+      </p>
+      <p>
+        Para que os irmãos tivessem um melhor aproveitamento dos estudos e pudessem consultar facilmente a anatomia do aparelho fonador, 
+        técnicas de apoio e vocalizes, foi produzido um projeto especial de transcrição e diagramação que culminou na 
+        <strong>Apostila Oficial de 144 páginas em LaTeX</strong> — um livro técnico completo, com ilustrações anatômicas de alta fidelidade, 
+        tabelas de exercícios respiratórios e referências minutadas de cada transmissão.
+      </p>
+      <p>
+        Com o grande alcance e acolhida da apostila pelos membros e líderes da Igreja Cristã Maranata, demos o próximo passo: transformar esse 
+        rico acervo pedagógico em uma <strong>plataforma de curso digital interativa</strong>. Aqui, cada aula combina o vídeo oficial do YouTube 
+        sincronizado segundo a segundo com as explicações didáticas da apostila, permitindo marcar aulas concluídas, favoritar conteúdos 
+        e alternar entre dispositivos sem senhas ou cadastros.
+      </p>
+    </div>
+
+    <div class="home-cta-group">
+      <a href="/modulo-1/aula-01-apresentacao-a-importancia-da-tecnica/" class="btn-primary-home">
+        ▶️ Começar pela Aula 1
+      </a>
+      <a href="/apostila.pdf" download="Apostila-Pra-Teu-Louvor.pdf" class="btn-secondary-home">
+        📥 Baixar Apostila em PDF (144 páginas)
+      </a>
+      <a href="/apresentacao/chamada/" class="btn-ghost-home">
+        📺 Ver Vídeo de Chamada
+      </a>
+    </div>
+  </section>
+
+  <!-- Painel de Progresso Rápido do Aluno -->
+  <section class="home-section user-dashboard" id="userDashboard">
+    <div class="dashboard-header">
+      <div class="dash-title">
+        <span class="dash-icon">📊</span>
+        <div>
+          <h3>Seu Painel de Aprendizado</h3>
+          <p id="dashStatusText">Carregando seu progresso local...</p>
+        </div>
+      </div>
+      <div class="dash-actions">
+        <button id="homeOpenSyncBtn" class="btn-dash-sync">
+          📲 Enviar / Sincronizar Progresso
+        </button>
+      </div>
+    </div>
+    
+    <div class="dash-bar-container">
+      <div class="dash-bar-fill" id="dashBarFill" style="width: 0%;"></div>
+    </div>
+    <div class="dash-stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="statCompleted">0 / 58</div>
+        <div class="stat-label">Aulas Concluídas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statPercent">0%</div>
+        <div class="stat-label">Progresso do Curso</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statFavorites">0</div>
+        <div class="stat-label">Aulas Favoritas ⭐</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grade dos 8 Módulos -->
+  <section class="home-section modules-overview">
+    <div class="section-title-wrap">
+      <h2>Estrutura Curricular (8 Módulos)</h2>
+      <p>Uma jornada pedagógica integrada que vai da consciência fisiológica ao repertório de hinos do culto.</p>
+    </div>
+
+    <div class="modules-grid">
+      <!-- Módulo 1 -->
+      <a href="/modulo-1/" class="module-card">
+        <div class="mod-badge">Módulo 1 · 6 Aulas</div>
+        <h3>O Instrumento é Você: Fundamentos</h3>
+        <p>A voz como digital sonora, o corpo como instrumento, comando cerebral e anatomia da laringe.</p>
+        <span class="mod-link">Ver aulas do módulo →</span>
+      </a>
+
+      <!-- Módulo 2 -->
+      <a href="/modulo-2/" class="module-card">
+        <div class="mod-badge">Módulo 2 · 8 Aulas</div>
+        <h3>Respiração, Apoio e Sustentação</h3>
+        <p>Pilares da voz, respiração costodiafragmática abdominal, apoio muscular e controle do fluxo de ar.</p>
+        <span class="mod-link">Ver aulas do módulo →</span>
+      </a>
+
+      <!-- Módulo 3 -->
+      <a href="/modulo-3/" class="module-card">
+        <div class="mod-badge">Módulo 3 · 5 Aulas</div>
+        <h3>Energia, Fonte e Filtro: Três Subsistemas</h3>
+        <p>A física e a fisiologia da voz cantada: produção de ar, vibração na laringe e ressonância no trato vocal.</p>
+        <span class="mod-link">Ver aulas do módulo →</span>
+      </a>
+
+      <!-- Módulo 4 -->
+      <a href="/modulo-4/" class="module-card">
+        <div class="mod-badge">Módulo 4 · 5 Aulas</div>
+        <h3>Registros, Modos de Fonação e Extensão</h3>
+        <p>Mecanismos laríngeos M1 e M2, passagens, extensão vs tessitura vocal e eliminação de tensões.</p>
+        <span class="mod-link">Ver aulas do módulo →</span>
+      </a>
+
+      <!-- Módulo 5 -->
+      <a href="/modulo-5/" class="module-card">
+        <div class="mod-badge">Módulo 5 · 6 Aulas</div>
+        <h3>Articuladores e Musculatura Facial</h3>
+        <p>Língua, mandíbula, palato mole, embocadura e ginástica articulatória para clareza da dicção.</p>
+        <span class="mod-link">Ver aulas do módulo →</span>
+      </a>
+
+      <!-- Módulo 6 -->
+      <a href="/modulo-6/" class="module-card">
+        <div class="mod-badge">Módulo 6 · 7 Aulas</div>
+        <h3>Vogais e Consoantes: O Texto Cantado</h3>
+        <p>Classificação fonética, linha de legato, modos de articulação e inteligibilidade da mensagem.</p>
+        <span class="mod-link">Ver aulas do módulo →</span>
+      </a>
+
+      <!-- Módulo 7 -->
+      <a href="/modulo-7/" class="module-card">
+        <div class="mod-badge">Módulo 7 · 8 Aulas</div>
+        <h3>Rotina, Aquecimento e Saúde Vocal</h3>
+        <p>Idades da voz, aquecimento corporal/vocal, tubo de ressonância (LaxVox) e cuidados fonoaudiológicos.</p>
+        <span class="mod-link">Ver aulas do módulo →</span>
+      </a>
+
+      <!-- Módulo 8 -->
+      <a href="/modulo-8/" class="module-card">
+        <div class="mod-badge">Módulo 8 · 13 Aulas</div>
+        <h3>Do Estudo ao Culto: Teoria e Repertório</h3>
+        <p>Partitura da coletânea e estudo prático de hinos: Tal Qual Estou, Uma Voz Mansa, Aleluia e outros.</p>
+        <span class="mod-link">Ver aulas do módulo →</span>
+      </a>
+    </div>
+  </section>
+</div>
+
+<script>
+  function updateDashboard() {
+    try {
+      const completed = JSON.parse(localStorage.getItem('ptl_completed') || '[]');
+      const favorites = JSON.parse(localStorage.getItem('ptl_favorites') || '[]');
+      const total = 58;
+      const count = completed.length;
+      const pct = Math.round((count / total) * 100);
+
+      const elComp = document.getElementById('statCompleted');
+      const elPct = document.getElementById('statPercent');
+      const elFav = document.getElementById('statFavorites');
+      const elBar = document.getElementById('dashBarFill');
+      const elText = document.getElementById('dashStatusText');
+
+      if (elComp) elComp.innerText = `${count} / ${total}`;
+      if (elPct) elPct.innerText = `${pct}%`;
+      if (elFav) elFav.innerText = `${favorites.length}`;
+      if (elBar) elBar.style.width = `${pct}%`;
+      if (elText) {
+        if (count === 0) {
+          elText.innerText = 'Comece sua primeira aula e acompanhe seu desenvolvimento!';
+        } else {
+          elText.innerText = `Você concluiu ${count} de ${total} aulas (${pct}%). Continue assim!`;
+        }
+      }
+    } catch (e) {
+      console.warn('Erro ao atualizar dashboard', e);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateDashboard();
+    window.addEventListener('ptl:progress-updated', updateDashboard);
+    const syncBtn = document.getElementById('homeOpenSyncBtn');
+    if (syncBtn) {
+      syncBtn.addEventListener('click', () => {
+        const modal = document.getElementById('ptlProgressModal');
+        if (modal) modal.classList.add('is-open');
+      });
+    }
+  });
+</script>
+
+<style>
+  .course-home-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    margin-top: 1rem;
+    font-family: inherit;
+  }
+
+  .home-section {
+    border-radius: 16px;
+    padding: 2rem;
+  }
+
+  .intro-card {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(30, 58, 138, 0.04) 100%);
+    border: 1px solid var(--sl-color-blue-low, rgba(59, 130, 246, 0.2));
+  }
+
+  .intro-badge {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    background: rgba(37, 99, 235, 0.15);
+    color: var(--sl-color-text-accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .intro-card h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.25rem;
+    color: var(--sl-color-white);
+  }
+
+  .intro-text p {
+    line-height: 1.7;
+    margin-bottom: 1rem;
+    font-size: 1.05rem;
+    color: var(--sl-color-gray-2);
+  }
+
+  .home-cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.75rem;
+  }
+
+  .btn-primary-home, .btn-secondary-home, .btn-ghost-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary-home {
+    background-color: var(--sl-color-text-accent, #3b82f6);
+    color: #ffffff !important;
+  }
+  .btn-primary-home:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  }
+
+  .btn-secondary-home {
+    background-color: var(--sl-color-gray-6, #1e293b);
+    border: 1px solid var(--sl-color-gray-5, #334155);
+    color: var(--sl-color-white) !important;
+  }
+  .btn-secondary-home:hover {
+    background-color: var(--sl-color-gray-5, #334155);
+    transform: translateY(-2px);
+  }
+
+  .btn-ghost-home {
+    background: transparent;
+    color: var(--sl-color-text-accent) !important;
+  }
+  .btn-ghost-home:hover {
+    text-decoration: underline;
+  }
+
+  /* Dashboard */
+  .user-dashboard {
+    background: var(--sl-color-bg-sidebar, rgba(15, 23, 42, 0.6));
+    border: 1px solid var(--sl-color-hairline, rgba(255, 255, 255, 0.1));
+  }
+
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .dash-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .dash-icon {
+    font-size: 1.75rem;
+  }
+
+  .dash-title h3 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .dash-title p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .btn-dash-sync {
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: var(--sl-color-text-accent);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-dash-sync:hover {
+    background: rgba(59, 130, 246, 0.25);
+  }
+
+  .dash-bar-container {
+    height: 10px;
+    background: var(--sl-color-gray-6, #1e293b);
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .dash-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    transition: width 0.4s ease;
+  }
+
+  .dash-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: var(--sl-color-bg);
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--sl-color-text-accent);
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  /* Modules Grid */
+  .section-title-wrap {
+    margin-bottom: 1.5rem;
+  }
+  .section-title-wrap h2 {
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+  }
+  .section-title-wrap p {
+    color: var(--sl-color-gray-3);
+  }
+
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .module-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-radius: 14px;
+    background: var(--sl-color-bg-sidebar);
+    border: 1px solid var(--sl-color-hairline);
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+  }
+
+  .module-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--sl-color-text-accent);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .mod-badge {
+    align-self: flex-start;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--sl-color-text-accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .module-card h3 {
+    font-size: 1.15rem;
+    color: var(--sl-color-white);
+    margin-bottom: 0.5rem;
+  }
+
+  .module-card p {
+    font-size: 0.9rem;
+    color: var(--sl-color-gray-3);
+    line-height: 1.5;
+    flex-grow: 1;
+    margin-bottom: 1rem;
+  }
+
+  .mod-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--sl-color-text-accent);
+  }
+</style>

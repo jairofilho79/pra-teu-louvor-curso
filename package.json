@@ -1,0 +1,19 @@
+{
+  "name": "pra-teu-louvor-curso",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Curso e Apostila Digital Pra Teu Louvor — Técnica Vocal Aplicada ao Louvor (Igreja Cristã Maranata)",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "convert": "python3 scripts/export_to_starlight.py",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.32.0",
+    "astro": "^5.4.0",
+    "sharp": "^0.33.5"
+  }
+}

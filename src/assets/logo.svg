@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="ptl-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="12" fill="url(#ptl-grad)" />
+  <!-- Musical note & soundwave -->
+  <path d="M18 34V15c0-1.1.9-2 2-2h12v4H22v17a5 5 0 1 1-4-4z" fill="#ffffff" />
+  <circle cx="17" cy="34" r="4" fill="#ffffff" />
+  <circle cx="29" cy="30" r="3.5" fill="#93c5fd" />
+  <path d="M32 17v13" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" />
+</svg>

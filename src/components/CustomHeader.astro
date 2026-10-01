@@ -1,0 +1,659 @@
+---
+// src/components/CustomHeader.astro
+import config from 'virtual:starlight/user-config';
+import Search from 'virtual:starlight/components/Search';
+import SiteTitle from 'virtual:starlight/components/SiteTitle';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+
+const shouldRenderSearch =
+  config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
+---
+
+<header class="ptl-header-root">
+  <div class="header-main-bar">
+    <div class="title-and-search">
+      <SiteTitle />
+      {shouldRenderSearch && (
+        <div class="search-box-wrapper print:hidden">
+          <Search />
+        </div>
+      )}
+    </div>
+
+    <div class="header-actions print:hidden">
+      <!-- Baixar Apostila em PDF -->
+      <a
+        href="/apostila.pdf"
+        download="Pra-Teu-Louvor-Apostila-144-paginas.pdf"
+        class="hdr-btn btn-pdf"
+        title="Baixar Apostila Oficial Completa de 144 páginas em PDF"
+      >
+        <span class="btn-icon">📥</span>
+        <span class="btn-label">Baixar Apostila em PDF</span>
+      </a>
+
+      <!-- Compartilhar Curso -->
+      <button
+        type="button"
+        id="hdrShareSiteBtn"
+        class="hdr-btn btn-share"
+        title="Compartilhar link limpo do curso com outros irmãos"
+      >
+        <span class="btn-icon">🔗</span>
+        <span class="btn-label">Compartilhar Curso</span>
+      </button>
+
+      <!-- Meu Progresso -->
+      <button
+        type="button"
+        id="hdrProgressBtn"
+        class="hdr-btn btn-progress"
+        title="Ver progresso de estudos e sincronizar com outro aparelho"
+      >
+        <span class="btn-icon">🎯</span>
+        <span class="btn-label">Meu Progresso</span>
+        <span class="progress-badge" id="hdrProgressBadge">0/58</span>
+      </button>
+
+      <!-- Theme Select -->
+      <div class="theme-select-wrap">
+        <ThemeSelect />
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Compartilhar Curso -->
+  <div class="ptl-modal" id="ptlShareSiteModal">
+    <div class="modal-backdrop" id="closeShareBackdrop"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🔗 Compartilhar o Curso</h3>
+        <button type="button" class="btn-close-modal" id="closeShareModalBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          Envie o link do curso para amigos, solistas e grupos de louvor. 
+          Este link é público, limpo e <strong>não contém seu histórico pessoal de estudos</strong>.
+        </p>
+        <div class="input-with-copy">
+          <input type="text" id="shareSiteUrlInput" readonly />
+          <button type="button" id="copyShareSiteBtn" class="btn-modal-action">Copiar Link</button>
+        </div>
+        <div class="modal-share-quick">
+          <a id="whatsappShareBtn" href="#" target="_blank" rel="noopener" class="btn-whatsapp">
+            💬 Compartilhar no WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Meu Progresso & Mudar de Aparelho -->
+  <div class="ptl-modal" id="ptlProgressModal">
+    <div class="modal-backdrop" id="closeProgressBackdrop"></div>
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3>🎯 Meu Progresso & Sincronização</h3>
+        <button type="button" class="btn-close-modal" id="closeProgressModalBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Stats -->
+        <div class="modal-stats-row">
+          <div class="modal-stat-box">
+            <span class="stat-big-num" id="modalCompletedCount">0</span>
+            <span class="stat-sub">de 58 aulas concluídas</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="stat-big-num" id="modalFavoritesCount">0</span>
+            <span class="stat-sub">aulas favoritadas ⭐</span>
+          </div>
+        </div>
+
+        <div class="modal-progress-bar">
+          <div class="modal-progress-fill" id="modalProgressFill" style="width: 0%;"></div>
+        </div>
+
+        <hr class="modal-divider" />
+
+        <!-- Enviar Meu Progresso (Mudar de Aparelho) -->
+        <div class="sync-section">
+          <h4>📲 Enviar Meu Progresso (Mudar de Aparelho)</h4>
+          <p class="modal-desc">
+            Quer continuar seus estudos em outro celular, computador ou tablet? 
+            Gere seu link exclusivo de sincronização com o progresso salvo até agora:
+          </p>
+
+          <div class="sync-timestamp-badge" id="syncTimestampBadge">
+            🕒 Progresso salvo em: <span id="syncDateLabel">--</span>
+          </div>
+
+          <div class="input-with-copy">
+            <input type="text" id="syncLinkInput" readonly />
+            <button type="button" id="copySyncLinkBtn" class="btn-modal-action">Copiar Link</button>
+          </div>
+
+          <div class="sync-instructions">
+            <p><strong>Como usar:</strong></p>
+            <ul>
+              <li>Envie este link para você mesmo via <strong>AirDrop</strong>, <strong>QuickShare</strong> ou <strong>WhatsApp</strong>.</li>
+              <li>Ao abrir no novo dispositivo, seu progresso será carregado instantaneamente!</li>
+              <li><em>Lembre-se:</em> se continuar assistindo no novo aparelho, gere um novo link quando quiser transferir de volta.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Progresso Detectado (Ao abrir via #sync=...) -->
+  <div class="ptl-modal" id="ptlDetectedSyncModal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>✨ Progresso de Estudos Detectado!</h3>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          Você abriu este site através de um link de sincronização pessoal.
+        </p>
+        <div class="detected-box" id="detectedDetails">
+          Carregando dados...
+        </div>
+        <div class="detected-actions">
+          <button type="button" id="btnConfirmSyncImport" class="btn-confirm-sync">
+            ✅ Carregar Meu Progresso Neste Aparelho
+          </button>
+          <button type="button" id="btnCancelSyncImport" class="btn-cancel-sync">
+            Ignorar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  function formatBRDate(d = new Date()) {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} às ${hours}:${mins}`;
+  }
+
+  function setupHeaderAndSync() {
+    const hdrBadge = document.getElementById('hdrProgressBadge');
+    const modalCompleted = document.getElementById('modalCompletedCount');
+    const modalFavs = document.getElementById('modalFavoritesCount');
+    const modalFill = document.getElementById('modalProgressFill');
+    const syncInput = document.getElementById('syncLinkInput') as HTMLInputElement;
+    const syncDateLabel = document.getElementById('syncDateLabel');
+    const shareInput = document.getElementById('shareSiteUrlInput') as HTMLInputElement;
+    const waShare = document.getElementById('whatsappShareBtn') as HTMLAnchorElement;
+
+    function refreshStats() {
+      try {
+        const completed = JSON.parse(localStorage.getItem('ptl_completed') || '[]');
+        const favorites = JSON.parse(localStorage.getItem('ptl_favorites') || '[]');
+        const total = 58;
+        const count = completed.length;
+        const pct = Math.round((count / total) * 100);
+
+        if (hdrBadge) hdrBadge.innerText = `${count}/${total}`;
+        if (modalCompleted) modalCompleted.innerText = String(count);
+        if (modalFavs) modalFavs.innerText = String(favorites.length);
+        if (modalFill) modalFill.style.width = `${pct}%`;
+
+        // Monta payload de sincronização
+        const nowStr = formatBRDate();
+        if (syncDateLabel) syncDateLabel.innerText = nowStr;
+
+        const payload = {
+          v: 1,
+          savedAt: nowStr,
+          completed: completed,
+          favorites: favorites
+        };
+        const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+        const syncUrl = `${window.location.origin}/#sync=${b64}`;
+        if (syncInput) syncInput.value = syncUrl;
+      } catch (err) {
+        console.warn('Erro ao atualizar stats', err);
+      }
+    }
+
+    refreshStats();
+    window.addEventListener('ptl:progress-updated', refreshStats);
+
+    // Configura URL limpa de compartilhamento
+    const cleanUrl = window.location.origin;
+    if (shareInput) shareInput.value = cleanUrl;
+    if (waShare) {
+      const text = encodeURIComponent(`Olá! Estou estudando técnica vocal no curso e apostila digital Pra Teu Louvor da Igreja Cristã Maranata. Acesse aqui: ${cleanUrl}`);
+      waShare.href = `https://api.whatsapp.com/send?text=${text}`;
+    }
+
+    // Abertura / Fechamento de Modais
+    const shareModal = document.getElementById('ptlShareSiteModal');
+    const progModal = document.getElementById('ptlProgressModal');
+
+    document.getElementById('hdrShareSiteBtn')?.addEventListener('click', () => {
+      shareModal?.classList.add('is-open');
+    });
+    document.getElementById('closeShareModalBtn')?.addEventListener('click', () => {
+      shareModal?.classList.remove('is-open');
+    });
+    document.getElementById('closeShareBackdrop')?.addEventListener('click', () => {
+      shareModal?.classList.remove('is-open');
+    });
+
+    document.getElementById('hdrProgressBtn')?.addEventListener('click', () => {
+      refreshStats();
+      progModal?.classList.add('is-open');
+    });
+    document.getElementById('closeProgressModalBtn')?.addEventListener('click', () => {
+      progModal?.classList.remove('is-open');
+    });
+    document.getElementById('closeProgressBackdrop')?.addEventListener('click', () => {
+      progModal?.classList.remove('is-open');
+    });
+
+    // Copiar botões
+    const copyShareBtn = document.getElementById('copyShareSiteBtn');
+    if (copyShareBtn && shareInput) {
+      copyShareBtn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(shareInput.value);
+        copyShareBtn.innerText = '✅ Copiado!';
+        setTimeout(() => { copyShareBtn.innerText = 'Copiar Link'; }, 2000);
+      });
+    }
+
+    const copySyncBtn = document.getElementById('copySyncLinkBtn');
+    if (copySyncBtn && syncInput) {
+      copySyncBtn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(syncInput.value);
+        copySyncBtn.innerText = '✅ Copiado!';
+        setTimeout(() => { copySyncBtn.innerText = 'Copiar Link'; }, 2000);
+      });
+    }
+
+    // Detecção automática de #sync=...
+    if (window.location.hash.startsWith('#sync=')) {
+      try {
+        const rawB64 = window.location.hash.replace('#sync=', '');
+        const jsonStr = decodeURIComponent(escape(atob(rawB64)));
+        const data = JSON.parse(jsonStr);
+
+        const detectedModal = document.getElementById('ptlDetectedSyncModal');
+        const detailsEl = document.getElementById('detectedDetails');
+
+        if (detectedModal && detailsEl && data) {
+          const compCount = Array.isArray(data.completed) ? data.completed.length : 0;
+          const favCount = Array.isArray(data.favorites) ? data.favorites.length : 0;
+          detailsEl.innerHTML = `
+            <strong>Salvo em:</strong> ${data.savedAt || 'Data não informada'}<br/>
+            <strong>Aulas Concluídas:</strong> ${compCount} de 58<br/>
+            <strong>Aulas Favoritadas:</strong> ${favCount}
+          `;
+          detectedModal.classList.add('is-open');
+
+          document.getElementById('btnConfirmSyncImport')?.addEventListener('click', () => {
+            if (Array.isArray(data.completed)) {
+              localStorage.setItem('ptl_completed', JSON.stringify(data.completed));
+            }
+            if (Array.isArray(data.favorites)) {
+              localStorage.setItem('ptl_favorites', JSON.stringify(data.favorites));
+            }
+            history.replaceState(null, '', window.location.pathname);
+            detectedModal.classList.remove('is-open');
+            window.dispatchEvent(new CustomEvent('ptl:progress-updated'));
+            alert('Progresso importado com sucesso! Bons estudos!');
+          });
+
+          document.getElementById('btnCancelSyncImport')?.addEventListener('click', () => {
+            history.replaceState(null, '', window.location.pathname);
+            detectedModal.classList.remove('is-open');
+          });
+        }
+      } catch (err) {
+        console.warn('Erro ao processar sync hash', err);
+      }
+    }
+  }
+
+  setupHeaderAndSync();
+  document.addEventListener('astro:page-load', setupHeaderAndSync);
+</script>
+
+<style>
+  .ptl-header-root {
+    width: 100%;
+    position: relative;
+    z-index: 50;
+  }
+
+  .header-main-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    height: 100%;
+    padding: 0.25rem 0;
+  }
+
+  .title-and-search {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  .search-box-wrapper {
+    max-width: 320px;
+    width: 100%;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-shrink: 0;
+  }
+
+  .hdr-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none !important;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  /* Botão Baixar Apostila em PDF */
+  .btn-pdf {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #ef4444 !important;
+  }
+  .btn-pdf:hover {
+    background: #ef4444;
+    color: #ffffff !important;
+    border-color: #ef4444;
+  }
+
+  /* Botão Compartilhar Curso */
+  .btn-share {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--sl-color-hairline, rgba(255, 255, 255, 0.15));
+    color: var(--sl-color-white) !important;
+  }
+  .btn-share:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--sl-color-text-accent);
+  }
+
+  /* Botão Meu Progresso */
+  .btn-progress {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: var(--sl-color-text-accent, #60a5fa) !important;
+  }
+  .btn-progress:hover {
+    background: rgba(59, 130, 246, 0.28);
+  }
+
+  .progress-badge {
+    background: #3b82f6;
+    color: #ffffff;
+    font-size: 0.72rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    margin-left: 0.2rem;
+  }
+
+  .theme-select-wrap {
+    margin-left: 0.5rem;
+  }
+
+  /* Responsive header */
+  @media (max-width: 900px) {
+    .btn-label {
+      display: none;
+    }
+    .hdr-btn {
+      padding: 0.45rem 0.6rem;
+    }
+  }
+
+  /* Modal System */
+  .ptl-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  .ptl-modal.is-open {
+    display: flex;
+  }
+
+  .modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-box {
+    position: relative;
+    z-index: 10;
+    width: 90%;
+    max-width: 500px;
+    background: var(--sl-color-bg-nav, #0f172a);
+    border: 1px solid var(--sl-color-hairline, rgba(255, 255, 255, 0.15));
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    color: var(--sl-color-white);
+  }
+  .modal-box.modal-lg {
+    max-width: 600px;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .btn-close-modal {
+    background: transparent;
+    border: none;
+    color: var(--sl-color-gray-3);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+  }
+  .btn-close-modal:hover {
+    color: #ffffff;
+  }
+
+  .modal-desc {
+    font-size: 0.95rem;
+    color: var(--sl-color-gray-2);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+
+  .input-with-copy {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .input-with-copy input {
+    flex-grow: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    color: var(--sl-color-white);
+    font-size: 0.88rem;
+    font-family: inherit;
+  }
+
+  .btn-modal-action {
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .btn-modal-action:hover {
+    background: #2563eb;
+  }
+
+  .btn-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.65rem;
+    border-radius: 8px;
+    background: #16a34a;
+    color: #ffffff !important;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .btn-whatsapp:hover {
+    background: #15803d;
+  }
+
+  .modal-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .modal-stat-box {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 10px;
+    padding: 0.85rem;
+    text-align: center;
+  }
+  .stat-big-num {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #3b82f6;
+  }
+  .stat-sub {
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .modal-progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  .modal-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    transition: width 0.3s;
+  }
+
+  .modal-divider {
+    border: 0;
+    border-top: 1px solid var(--sl-color-hairline);
+    margin: 1.25rem 0;
+  }
+
+  .sync-timestamp-badge {
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #93c5fd;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    margin-bottom: 0.85rem;
+    display: inline-block;
+  }
+
+  .sync-instructions {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-3);
+  }
+  .sync-instructions ul {
+    margin: 0.5rem 0 0 1.2rem;
+    padding: 0;
+  }
+  .sync-instructions li {
+    margin-bottom: 0.25rem;
+  }
+
+  .detected-box {
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  .detected-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+  .btn-confirm-sync {
+    flex-grow: 1;
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn-cancel-sync {
+    background: transparent;
+    border: 1px solid var(--sl-color-hairline);
+    color: var(--sl-color-gray-3);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+</style>

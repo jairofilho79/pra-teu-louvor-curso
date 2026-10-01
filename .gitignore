@@ -1,0 +1,48 @@
+# Ambientes e Variáveis de Ambiente
+.env
+.env.*
+.env.example
+.venv/
+env/
+venv/
+
+# Dependências Node e Builds
+node_modules/
+dist/
+.astro/
+
+# Áudio pesado bruto do YouTube (2GB+)
+data/audio/
+*.mp3
+*.m4a
+*.wav
+*.ogg
+
+# Arquivos de pipeline, curadoria e geração local (não necessários no repo web)
+data/
+latex/
+prompts/
+scripts/
+site-mockup/
+output/
+requirements.txt
+AGENTS.md
+
+# Arquivos de saída de compilação intermediários
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Cache e Python
+__pycache__/
+*.pyc
+.cache/
+models/
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db

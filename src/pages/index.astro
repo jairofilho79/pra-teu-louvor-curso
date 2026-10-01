@@ -1,0 +1,1226 @@
+---
+import courseData from '../data/courseData.json';
+import '../styles/lms.css';
+const totalLessons = courseData.totalLessons || 58;
+const initialLesson = courseData.modules[0].lessons[0];
+---
+
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pra Teu Louvor — Curso Completo de Técnica Vocal | Igreja Cristã Maranata</title>
+  <meta name="description" content="Curso interativo de técnica vocal aplicada ao louvor com a Prof.ª Paula Santana. 8 módulos, 58 aulas, mais de 70 ilustrações anatômicas e apostila em PDF de 144 páginas.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+  <!-- Fontes e Ícones -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+
+  <!-- ======================================================================
+       HEADER SUPERIOR GLOBAL
+       ====================================================================== -->
+  <header class="site-header">
+    <div class="brand-wrapper" onclick="showCourseHome()" title="Ir para a Apresentação do Curso">
+      <div class="brand-icon-box">
+        <img src="/assets/choir-silhouette.svg" alt="Pra Teu Louvor Ícone" width="34" height="34" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+      </div>
+      <div class="brand-text-group">
+        <span class="brand-title-script">Pra Teu Louvor</span>
+        <span class="brand-tag-sub">Aulas de Canto • Igreja Cristã Maranata</span>
+      </div>
+    </div>
+
+    <!-- Ações da Header -->
+    <div class="header-actions">
+      <!-- 1. Baixar Apostila em PDF (144 páginas) -->
+      <a href="/apostila.pdf" download="Apostila-Pra-Teu-Louvor-144-paginas.pdf" target="_blank" class="btn-header-action btn-pdf-header" title="Baixar a apostila oficial completa de 144 páginas para impressão">
+        <i class="fas fa-file-pdf"></i>
+        <span>Baixar Apostila em PDF</span>
+      </a>
+
+      <!-- 2. Compartilhar Curso (Link Limpo) -->
+      <button class="btn-header-action btn-share-header" onclick="openShareSiteModal()" title="Compartilhar este curso com irmãos e amigos">
+        <i class="fas fa-share-nodes"></i>
+        <span>Compartilhar Curso</span>
+      </button>
+
+      <!-- 3. Meu Progresso / Sincronizar via Link -->
+      <button class="btn-header-action btn-sync-header" onclick="openSyncModal()" title="Ver e sincronizar seu progresso de estudo em outro aparelho">
+        <i class="fas fa-chart-line"></i>
+        <span>Meu Progresso</span>
+        <span class="header-progress-pill" id="headerProgressCount">0/{totalLessons}</span>
+      </button>
+
+      <!-- 4. Alternar Modo Claro/Escuro -->
+      <button class="btn-icon-header" id="themeToggleBtn" onclick="toggleTheme()" title="Alternar Modo Claro / Escuro">
+        <i class="fas fa-moon" id="themeToggleIcon"></i>
+      </button>
+
+      <!-- 5. Menu Mobile Toggle -->
+      <button class="btn-icon-header mobile-menu-toggle" id="mobileMenuBtn" onclick="toggleMobileSidebar()" title="Abrir menu de aulas">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Backdrop do Menu Mobile -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileSidebar()"></div>
+
+  <!-- ======================================================================
+       ESTRUTURA LMS PRINCIPAL (SIDEBAR + STAGE)
+       ====================================================================== -->
+  <div class="lms-layout">
+    
+    <!-- SIDEBAR ESQUERDA: CURRÍCULO E PROGRESSO -->
+    <aside class="lms-sidebar" id="lmsSidebar">
+      <div class="lms-sidebar-header">
+        <div class="sidebar-title-row">
+          <span class="sidebar-label-small">Currículo do Curso</span>
+          <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">{totalLessons} aulas</span>
+        </div>
+        <div class="sidebar-title-main">Técnica Vocal Aplicada</div>
+        
+        <!-- Bloco de Progresso -->
+        <div class="course-progress-block">
+          <div class="progress-label-row">
+            <span>Seu Progresso</span>
+            <span id="lmsProgressPercent">0%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="lmsProgressBarFill" style="width: 0%;"></div>
+          </div>
+          <div class="progress-meta-row">
+            <span id="lmsProgressCount">0 de {totalLessons} concluídas</span>
+            <button class="btn-sidebar-progress-link" onclick="openSyncModal()">
+              <i class="fas fa-arrow-up-right-from-square"></i> Mudar aparelho
+            </button>
+          </div>
+        </div>
+
+        <!-- Botão Apresentação do Curso -->
+        <button class="sidebar-home-btn" id="sidebarHomeBtn" onclick="showCourseHome()">
+          <i class="fas fa-house-chimney"></i>
+          <span>Apresentação do Curso</span>
+        </button>
+
+        <!-- Campo de Busca de Aulas -->
+        <div class="sidebar-search-wrap">
+          <i class="fas fa-magnifying-glass sidebar-search-icon"></i>
+          <input type="text" id="sidebarSearchInput" class="sidebar-search-input" placeholder="Buscar aula por tema ou palavra..." oninput="filterSidebarLessons()">
+        </div>
+
+        <!-- Filtros: Todas vs Favoritas -->
+        <div class="sidebar-filter-tabs">
+          <button class="sidebar-filter-btn active" id="filterAllBtn" onclick="setSidebarFilter('all')">
+            <i class="fas fa-list"></i> Todas ({totalLessons})
+          </button>
+          <button class="sidebar-filter-btn" id="filterFavBtn" onclick="setSidebarFilter('fav')">
+            <i class="fas fa-star" style="color:var(--accent-gold);"></i> Favoritas (<span id="sidebarFavCount">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de Módulos e Aulas com Scroll -->
+      <nav class="lms-curriculum-scroll" id="lmsCurriculumNav">
+        {courseData.modules.map((mod, modIdx) => (
+          <div class={`module-accordion ${modIdx === 0 ? 'open' : ''}`} data-module-id={mod.id}>
+            <button class="module-header-btn" onclick={`toggleModuleAccordion(${mod.id})`}>
+              <span class="module-number-badge">Módulo {mod.id}</span>
+              <div class="module-info-wrap">
+                <div class="module-title-text">{mod.title}</div>
+                <div class="module-meta-text">{mod.lessons.length} aulas</div>
+              </div>
+              <i class="fas fa-chevron-down module-chevron"></i>
+            </button>
+            <div class="lesson-list">
+              {mod.lessons.map((lesson) => (
+                <div class={`lesson-nav-item ${lesson.id === 'aula-1' ? 'active' : ''}`} data-lesson-id={lesson.id} onclick={`selectLesson('${lesson.id}')`}>
+                  <i class="far fa-circle lesson-status-icon" id={`statusIcon_${lesson.id}`}></i>
+                  <div class="lesson-nav-title-wrap">
+                    <div class="lesson-nav-title">{lesson.title}</div>
+                    <div class="lesson-nav-meta">{lesson.duration} • {lesson.type}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </nav>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL (STAGE) -->
+    <main class="lms-main">
+      
+      <!-- ====================================================================
+           VIEW 1: SALA DE AULA (VÍDEO + MARCADORES + ABAS DA APOSTILA)
+           ==================================================================== -->
+      <section class="classroom-container" id="lmsClassroomView">
+        
+        <!-- Player de Vídeo Cinema 16:9 -->
+        <div class="cinema-video-card">
+          <iframe 
+            id="lmsVideoFrame" 
+            src={`https://www.youtube.com/embed/${initialLesson.videoId}?enablejsapi=1&rel=0`}
+            title="Vídeo da Aula"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <!-- Barra de Controle da Aula (Título e Ações Rápidas) -->
+        <div class="lesson-control-bar">
+          <div class="lesson-heading">
+            <div class="lesson-breadcrumbs" id="lmsBreadcrumbs">
+              Módulo 1 • O instrumento é você • 23/07/2022
+            </div>
+            <h2 id="lmsLessonTitle">{initialLesson.title}</h2>
+          </div>
+
+          <div class="lesson-actions-group">
+            <!-- Favoritar -->
+            <button class="btn-action btn-favorite" id="lessonFavBtn" onclick="toggleCurrentLessonFavorite()" title="Salvar aula nos seus favoritos">
+              <i class="far fa-star"></i>
+              <span>Favoritar</span>
+            </button>
+
+            <!-- Concluir Aula -->
+            <button class="btn-action btn-complete" id="lmsCompleteBtn" onclick="toggleCurrentLessonCompletion()" title="Marcar aula como assistida">
+              <i class="far fa-circle"></i>
+              <span>Marcar como Concluída</span>
+            </button>
+
+            <!-- Próxima Aula -->
+            <button class="btn-action btn-next-lesson" id="lmsNextBtn" onclick="goToNextLesson()" title="Avançar para a próxima aula">
+              <span>Próxima Aula</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <!-- Assistir no YouTube -->
+            <a href={`https://www.youtube.com/watch?v=${initialLesson.videoId}`} target="_blank" rel="noopener noreferrer" class="btn-action btn-yt-link" id="lmsYtBtn" title="Assistir diretamente no YouTube">
+              <i class="fab fa-youtube"></i>
+              <span>YouTube</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Marcadores Interativos do Vídeo (Timestamps) -->
+        <section class="timestamps-section">
+          <div class="timestamps-section-title">
+            <i class="fas fa-bookmark"></i>
+            <span>Marcadores do Vídeo (Clique para pular ao trecho exato):</span>
+          </div>
+          <div class="timestamps-grid" id="lmsTimestampsGrid">
+            <!-- Injetado dinamicamente pelo JavaScript -->
+          </div>
+        </section>
+
+        <!-- Navegação de Abas Didáticas -->
+        <div class="lms-tabs-nav" role="tablist">
+          <button class="lms-tab-btn active" data-tab="tabApostila" onclick="switchLmsTab('tabApostila')">
+            <i class="fas fa-book-open"></i> Apostila Didática
+          </button>
+          <button class="lms-tab-btn" data-tab="tabFiguras" onclick="switchLmsTab('tabFiguras')">
+            <i class="fas fa-microscope"></i> Fisiologia & Imagens
+          </button>
+          <button class="lms-tab-btn" data-tab="tabPratica" onclick="switchLmsTab('tabPratica')">
+            <i class="fas fa-music"></i> Prática Vocal & Hinos
+          </button>
+        </div>
+
+        <!-- Conteúdos das Abas -->
+        <div class="lms-tab-content-wrap">
+          
+          <!-- Aba 1: Apostila Didática -->
+          <div class="lms-tab-pane active" id="tabApostila">
+            <div id="lmsProseContent">
+              <!-- Injetado dinamicamente pelo JavaScript -->
+            </div>
+          </div>
+
+          <!-- Aba 2: Fisiologia & Imagens Anatômicas -->
+          <div class="lms-tab-pane" id="tabFiguras">
+            <div id="lmsFiguresContent">
+              <!-- Injetado dinamicamente pelo JavaScript -->
+            </div>
+          </div>
+
+          <!-- Aba 3: Prática Vocal & Aplicação no Culto -->
+          <div class="lms-tab-pane" id="tabPratica">
+            <div id="lmsExercisesContent">
+              <!-- Injetado dinamicamente pelo JavaScript -->
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           VIEW 2: APRESENTAÇÃO DO CURSO (SOBRE O PROJETO & GRADE GERAL)
+           ==================================================================== -->
+      <section class="home-container" id="lmsHomeView">
+        
+        <!-- Hero Card com Visual da Thumbnail Oficial -->
+        <div class="home-hero-card">
+          <div class="home-hero-content">
+            <div class="home-hero-badge">
+              <i class="fas fa-award"></i> Igreja Cristã Maranata • Técnica Vocal
+            </div>
+            <div class="home-hero-title-script">Pra Teu Louvor</div>
+            <div class="home-hero-sub-gold">Curso Completo de Canto com a Prof.ª Paula Santana</div>
+            <p class="home-hero-sub">
+              Uma abordagem didática completa que une a ciência da fisiologia vocal à reverência do louvor congregacional. São 8 módulos estruturados, cobrindo da respiração costodiafragmática ao apoio, registros vocais e interpretação dos hinos do culto.
+            </p>
+            <div class="home-hero-actions">
+              <button class="btn-hero-primary" onclick="startOrResumeCourse()">
+                <i class="fas fa-play"></i> Iniciar o Curso (Aula 1)
+              </button>
+              <a href="/apostila.pdf" download="Apostila-Pra-Teu-Louvor-144-paginas.pdf" target="_blank" class="btn-hero-secondary">
+                <i class="fas fa-file-pdf"></i> Baixar Apostila em PDF (144 págs)
+              </a>
+              <button class="btn-hero-secondary" onclick="openSyncModal()">
+                <i class="fas fa-chart-line"></i> Meu Progresso
+              </button>
+            </div>
+          </div>
+
+          <div class="home-hero-illustration">
+            <img src="/assets/choir-silhouette.svg" alt="Coral Pra Teu Louvor" width="260" height="210">
+          </div>
+        </div>
+
+        <!-- Barra de Estatísticas do Projeto -->
+        <div class="home-stats-bar">
+          <div class="home-stat-box">
+            <div class="home-stat-number">{courseData.totalModules || 8}</div>
+            <div class="home-stat-label">Módulos Temáticos</div>
+          </div>
+          <div class="home-stat-box">
+            <div class="home-stat-number">{totalLessons}</div>
+            <div class="home-stat-label">Aulas em Vídeo</div>
+          </div>
+          <div class="home-stat-box">
+            <div class="home-stat-number">144</div>
+            <div class="home-stat-label">Páginas de Apostila</div>
+          </div>
+          <div class="home-stat-box">
+            <div class="home-stat-number">70+</div>
+            <div class="home-stat-label">Diagramas Anatômicos</div>
+          </div>
+        </div>
+
+        <!-- Seção de História: Da Apostila ao Curso Digital -->
+        <div class="home-story-grid">
+          <div class="home-story-card">
+            <div class="story-icon-wrap">
+              <i class="fas fa-church"></i>
+            </div>
+            <h3 class="story-card-title">O que é o Pra Teu Louvor?</h3>
+            <p class="story-card-text">
+              O projeto <strong>Pra Teu Louvor</strong> nasceu no coração da Igreja Cristã Maranata como uma iniciativa transformadora de capacitação para coristas, regentes e grupos de louvor. Ministrado pela renomada fonoaudióloga e professora de técnica vocal <strong>Paula Santana</strong>, o curso desmistifica a fisiologia da voz com rigor científico, trazendo exemplos práticos aplicados à realidade das igrejas.
+            </p>
+          </div>
+
+          <div class="home-story-card">
+            <div class="story-icon-wrap">
+              <i class="fas fa-laptop-code"></i>
+            </div>
+            <h3 class="story-card-title">Da Apostila ao Curso Digital</h3>
+            <p class="story-card-text">
+              Inicialmente concebido como uma apostila impressa em LaTeX de <strong>144 páginas</strong> para enriquecer as transcrições das aulas com diagramas anatômicos, mapas de fôlego e partituras, o projeto ganhou tamanha repercussão que evoluiu para esta plataforma web aberta e gratuita. Agora, os irmãos contam com vídeo sincronizado com marcadores, controle de progresso e estudos em qualquer dispositivo.
+            </p>
+          </div>
+        </div>
+
+        <!-- Grade de Todos os Módulos do Curso -->
+        <section class="home-modules-section">
+          <div class="home-section-header">
+            <h3 class="home-section-title"><i class="fas fa-graduation-cap" style="color:var(--primary); margin-right:8px;"></i> Grade Curricular Completa</h3>
+            <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">8 Módulos • 58 Aulas Estruturadas</span>
+          </div>
+
+          <div class="home-modules-grid">
+            {courseData.modules.map(mod => (
+              <div class="home-module-card" onclick={`selectLesson('${mod.lessons[0].id}')`}>
+                <div class="home-mod-badge-row">
+                  <span class="home-mod-num">Módulo {mod.id}</span>
+                  <span class="home-mod-count">{mod.lessons.length} aulas</span>
+                </div>
+                <div class="home-mod-title">{mod.title}</div>
+                <div class="home-mod-desc">
+                  {mod.intentions && mod.intentions.length > 0 ? mod.intentions[0] : `Estudos práticos e teóricos do Módulo ${mod.id}.`}
+                </div>
+                <button class="home-mod-btn">
+                  Acessar Módulo <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ======================================================================
+       MODAL 1: MEU PROGRESSO (ENVIAR MEU PROGRESSO VIA LINK)
+       ====================================================================== -->
+  <div class="modal-overlay" id="syncModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fas fa-chart-line" style="color:var(--primary);"></i>
+          <span>Enviar Meu Progresso</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeSyncModal()"><i class="fas fa-xmark"></i></button>
+      </div>
+
+      <p class="modal-description">
+        Seu progresso (aulas concluídas e favoritas) é salvo diretamente neste navegador. Para continuar seus estudos em outro celular, computador ou tablet, envie o link pessoal gerado abaixo:
+      </p>
+
+      <div class="sync-link-card">
+        <div class="sync-timestamp-highlight" id="syncTimestampDisplay">
+          <i class="fas fa-clock"></i> Progresso salvo até: Hoje
+        </div>
+        <div class="sync-url-input-wrap">
+          <input type="text" id="syncUrlInput" class="sync-url-input" readonly>
+          <button class="btn-action" onclick="copySyncLink()" title="Copiar Link">
+            <i class="fas fa-copy"></i> Copiar
+          </button>
+        </div>
+        <div class="sync-stats-summary">
+          <span class="sync-stat-tag"><strong id="syncStatCompleted">0</strong> aulas concluídas (<span id="syncStatPercent">0%</span>)</span>
+          <span class="sync-stat-tag"><strong id="syncStatFavorites">0</strong> favoritas</span>
+        </div>
+      </div>
+
+      <div class="modal-actions-list">
+        <button class="btn-modal-action btn-action-whatsapp" onclick="sendSyncWhatsApp()">
+          <i class="fab fa-whatsapp"></i> Enviar Meu Progresso via WhatsApp
+        </button>
+        <button class="btn-modal-action btn-action-primary" onclick="shareSyncViaAirDrop()">
+          <i class="fas fa-share-nodes"></i> Compartilhar via AirDrop / Quick Share
+        </button>
+      </div>
+
+      <!-- Importação manual de progresso -->
+      <div style="margin-top:24px; padding-top:18px; border-top:1px dashed var(--border-color);">
+        <div style="font-size:0.84rem; font-weight:700; color:var(--text-primary); margin-bottom:6px;">
+          Recebeu o progresso de outro dispositivo?
+        </div>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
+          Cole aqui o link que você enviou do seu outro aparelho para carregar suas aulas:
+        </p>
+        <div class="sync-url-input-wrap">
+          <input type="text" id="importSyncInput" class="sync-url-input" placeholder="Cole o link com #sync= aqui...">
+          <button class="btn-action" onclick="importManualSync()">
+            <i class="fas fa-file-import"></i> Carregar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 2: COMPARTILHAR CURSO (LINK OFICIAL LIMPO)
+       ====================================================================== -->
+  <div class="modal-overlay" id="shareSiteModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fas fa-share-nodes" style="color:var(--primary);"></i>
+          <span>Compartilhar o Curso</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeShareSiteModal()"><i class="fas fa-xmark"></i></button>
+      </div>
+
+      <p class="modal-description">
+        Divulgue o curso de técnica vocal <strong>Pra Teu Louvor</strong> com os irmãos, regentes e grupos de louvor. Este link é limpo e não contém seus dados pessoais de progresso.
+      </p>
+
+      <div class="sync-link-card">
+        <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">
+          Link Oficial do Curso:
+        </div>
+        <div class="sync-url-input-wrap">
+          <input type="text" id="shareSiteUrlInput" class="sync-url-input" readonly value="https://pra-teu-louvor.pages.dev/">
+          <button class="btn-action" onclick="copyCleanSiteLink()">
+            <i class="fas fa-copy"></i> Copiar
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions-list">
+        <button class="btn-modal-action btn-action-whatsapp" onclick="shareViaWhatsApp()">
+          <i class="fab fa-whatsapp"></i> Compartilhar no WhatsApp
+        </button>
+        <button class="btn-modal-action btn-action-primary" onclick="shareSiteNative()">
+          <i class="fas fa-arrow-up-from-bracket"></i> Mais Opções de Envio
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 3: LIGHTBOX DE ILUSTRAÇÕES ANATÔMICAS
+       ====================================================================== -->
+  <div class="lightbox-modal" id="lightboxModal">
+    <div class="lightbox-content-wrap">
+      <button class="lightbox-close-btn" onclick="closeLightbox()" title="Fechar imagem">
+        <i class="fas fa-xmark"></i>
+      </button>
+      <img id="lightboxImage" class="lightbox-image" src="" alt="Ilustração Anatômica Ampliada">
+      <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 4: DETECÇÃO AUTOMÁTICA DE SINCRONIZAÇÃO
+       ====================================================================== -->
+  <div class="modal-overlay" id="detectedSyncModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fas fa-rotate" style="color:var(--primary);"></i>
+          <span>Progresso Detectado!</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeDetectedModal()"><i class="fas fa-xmark"></i></button>
+      </div>
+
+      <p class="modal-description">
+        Identificamos um pacote de estudos enviado de outro aparelho:
+      </p>
+
+      <div class="sync-link-card">
+        <div style="font-size:0.88rem; line-height:1.7;">
+          <div><i class="fas fa-calendar-check" style="color:var(--primary); margin-right:6px;"></i> <strong>Data:</strong> <span id="detectedDate">-</span></div>
+          <div><i class="fas fa-circle-check" style="color:var(--success); margin-right:6px;"></i> <strong>Aulas Concluídas:</strong> <span id="detectedCountC">0</span></div>
+          <div><i class="fas fa-star" style="color:var(--accent-gold); margin-right:6px;"></i> <strong>Aulas Favoritas:</strong> <span id="detectedCountF">0</span></div>
+        </div>
+      </div>
+
+      <div class="modal-actions-list">
+        <button class="btn-modal-action btn-action-primary" onclick="confirmImportDetectedSync()">
+          <i class="fas fa-check"></i> Sincronizar e Carregar Neste Aparelho
+        </button>
+        <button class="btn-modal-action btn-action-secondary" onclick="closeDetectedModal()">
+          Manter Progresso Local Atual
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       SCRIPTS DA APLICAÇÃO LMS
+       ====================================================================== -->
+  <script is:inline src="/courseData.js"></script>
+  <script is:inline>
+    // Estado Global da Aplicação LMS
+    const AppState = {
+      currentLessonId: localStorage.getItem("ptl-last-lesson") || "aula-1",
+      theme: localStorage.getItem("ptl-theme") || "light",
+      completedLessons: JSON.parse(localStorage.getItem("ptl-completed") || '[]'),
+      favoriteLessons: JSON.parse(localStorage.getItem("ptl-favorites") || '[]'),
+      sidebarFilter: "all",
+      activeTab: "tabApostila",
+      detectedPayload: null
+    };
+
+    // Inicialização ao carregar a página
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      initRouting();
+      renderCurrentLesson();
+      updateAllProgressIndicators();
+      checkUrlSync();
+      setupKeyListeners();
+    });
+
+    // ------------------------------------------------------------------------
+    // TEMA CLARO / ESCURO
+    // ------------------------------------------------------------------------
+    function initTheme() {
+      document.documentElement.setAttribute("data-theme", AppState.theme);
+      updateThemeIcon();
+    }
+
+    function toggleTheme() {
+      AppState.theme = AppState.theme === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", AppState.theme);
+      localStorage.setItem("ptl-theme", AppState.theme);
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      const icon = document.getElementById("themeToggleIcon");
+      if (icon) {
+        icon.className = AppState.theme === "dark" ? "fas fa-sun" : "fas fa-moon";
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // ROTEAMENTO & NAVEGAÇÃO
+    // ------------------------------------------------------------------------
+    function initRouting() {
+      const hash = window.location.hash;
+      if (hash.startsWith("#aula=")) {
+        const id = hash.replace("#aula=", "");
+        if (getLessonById(id)) {
+          AppState.currentLessonId = id;
+        }
+      } else if (hash === "#apresentacao") {
+        showCourseHome(false);
+      }
+    }
+
+    function getLessonById(id) {
+      if (!window.COURSE_DATA) return null;
+      for (const m of window.COURSE_DATA.modules) {
+        const l = m.lessons.find(lesson => lesson.id === id);
+        if (l) return { lesson: l, module: m };
+      }
+      return null;
+    }
+
+    function selectLesson(lessonId) {
+      AppState.currentLessonId = lessonId;
+      localStorage.setItem("ptl-last-lesson", lessonId);
+      window.location.hash = `#aula=${lessonId}`;
+
+      // Alterna para visualização de sala de aula
+      document.getElementById("lmsHomeView").style.display = "none";
+      document.getElementById("lmsClassroomView").style.display = "block";
+      document.getElementById("sidebarHomeBtn").classList.remove("active");
+
+      // Abre o módulo correspondente na sidebar se estiver fechado
+      const lessonInfo = getLessonById(lessonId);
+      if (lessonInfo) {
+        const modAccordion = document.querySelector(`.module-accordion[data-module-id="${lessonInfo.module.id}"]`);
+        if (modAccordion && !modAccordion.classList.contains("open")) {
+          modAccordion.classList.add("open");
+        }
+      }
+
+      renderCurrentLesson();
+      closeMobileSidebar();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function showCourseHome(updateHash = true) {
+      document.getElementById("lmsHomeView").style.display = "block";
+      document.getElementById("lmsClassroomView").style.display = "none";
+      document.getElementById("sidebarHomeBtn").classList.add("active");
+      
+      document.querySelectorAll(".lesson-nav-item").forEach(el => el.classList.remove("active"));
+      if (updateHash) window.location.hash = "#apresentacao";
+      closeMobileSidebar();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function startOrResumeCourse() {
+      const target = AppState.currentLessonId || "aula-1";
+      selectLesson(target);
+    }
+
+    // ------------------------------------------------------------------------
+    // RENDERIZADOR DA SALA DE AULA
+    // ------------------------------------------------------------------------
+    function renderCurrentLesson() {
+      const info = getLessonById(AppState.currentLessonId) || getLessonById("aula-1");
+      if (!info) return;
+
+      const { lesson, module } = info;
+
+      // 1. Atualiza Player de Vídeo
+      const iframe = document.getElementById("lmsVideoFrame");
+      if (iframe) {
+        iframe.src = `https://www.youtube.com/embed/${lesson.videoId}?enablejsapi=1&rel=0`;
+      }
+
+      // 2. Título e Breadcrumbs
+      const titleEl = document.getElementById("lmsLessonTitle");
+      if (titleEl) titleEl.textContent = lesson.title;
+
+      const breadcrumbsEl = document.getElementById("lmsBreadcrumbs");
+      if (breadcrumbsEl) {
+        breadcrumbsEl.textContent = `Módulo ${module.id} • ${module.title} • ${lesson.date}`;
+      }
+
+      // 3. Botão do YouTube direto
+      const ytBtn = document.getElementById("lmsYtBtn");
+      if (ytBtn) {
+        ytBtn.href = `https://www.youtube.com/watch?v=${lesson.videoId}`;
+      }
+
+      // 4. Marcadores do Vídeo (Timestamps)
+      const tsGrid = document.getElementById("lmsTimestampsGrid");
+      if (tsGrid) {
+        if (lesson.timestamps && lesson.timestamps.length > 0) {
+          tsGrid.innerHTML = lesson.timestamps.map(ts => `
+            <button class="timestamp-card-btn" onclick="jumpVideoTimestamp(${ts.sec})">
+              <span class="timestamp-time-badge"><i class="fas fa-play" style="font-size:0.55rem;"></i> ${ts.time}</span>
+              <span class="timestamp-desc">${ts.label}</span>
+            </button>
+          `).join("");
+        } else {
+          tsGrid.innerHTML = `<div style="font-size:0.85rem; color:var(--text-muted); padding:10px;">Esta aula não possui marcadores temporais divididos.</div>`;
+        }
+      }
+
+      // 5. Aba 1: Apostila Didática
+      const proseContainer = document.getElementById("lmsProseContent");
+      if (proseContainer) {
+        proseContainer.innerHTML = `
+          ${lesson.objetivos && lesson.objetivos.length > 0 ? `
+            <div class="callout-box objetivos">
+              <div class="callout-header"><i class="fas fa-bullseye"></i> Objetivos de Aprendizagem</div>
+              <div class="callout-body">
+                <ul>${lesson.objetivos.map(o => `<li>${o}</li>`).join("")}</ul>
+              </div>
+            </div>
+          ` : ''}
+
+          ${lesson.topicos && lesson.topicos.length > 0 ? `
+            <div class="callout-box topicos">
+              <div class="callout-header"><i class="fas fa-list-check"></i> Tópicos Abordados</div>
+              <div class="callout-body">
+                <ul>${lesson.topicos.map(t => `<li>${t}</li>`).join("")}</ul>
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="prose-text-reading">
+            ${lesson.prose || '<p>Conteúdo em fase de sincronização didática.</p>'}
+          </div>
+
+          ${lesson.notas ? `
+            <div class="callout-box didatico">
+              <div class="callout-header"><i class="fas fa-chalkboard-user"></i> Orientações Práticas e Observações</div>
+              <div class="callout-body">
+                <p>${lesson.notas}</p>
+              </div>
+            </div>
+          ` : ''}
+        `;
+      }
+
+      // 6. Aba 2: Fisiologia & Imagens Anatômicas
+      const figContainer = document.getElementById("lmsFiguresContent");
+      if (figContainer) {
+        if (lesson.image) {
+          figContainer.innerHTML = `
+            <div class="figure-card">
+              <div class="figure-img-wrap" onclick="openLightbox('${lesson.image}', '${(lesson.imageCaption || '').replace(/'/g, "\\'")}')" title="Clique para ampliar em tela cheia">
+                <img src="${lesson.image}" alt="Diagrama Anatômico" onerror="this.src='/assets/choir-silhouette.svg'">
+              </div>
+              <div class="figure-caption">
+                <i class="fas fa-magnifying-glass-plus" style="margin-right:6px;"></i>
+                ${lesson.imageCaption || 'Diagrama anatômico correspondente à aula da apostila.'}
+              </div>
+              <div style="margin-top:14px;">
+                <button class="btn-action" onclick="openLightbox('${lesson.image}', '${(lesson.imageCaption || '').replace(/'/g, "\\'")}')">
+                  <i class="fas fa-expand"></i> Ver em Tela Cheia
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          figContainer.innerHTML = `
+            <div class="callout-box didatico" style="text-align:center; padding:32px;">
+              <i class="fas fa-image" style="font-size:2rem; color:var(--text-muted); margin-bottom:12px;"></i>
+              <div style="font-weight:700; margin-bottom:4px;">Nenhuma ilustração vinculada a esta aula</div>
+              <p style="font-size:0.86rem; color:var(--text-muted);">Esta aula tem foco prático ou auditivo, sem diagramas anatômicos dedicados na apostila.</p>
+            </div>
+          `;
+        }
+      }
+
+      // 7. Aba 3: Prática Vocal & Hinos
+      const exContainer = document.getElementById("lmsExercisesContent");
+      if (exContainer) {
+        exContainer.innerHTML = `
+          <div class="callout-box warning">
+            <div class="callout-header"><i class="fas fa-dumbbell"></i> Prática Vocal Guiada</div>
+            <div class="callout-body">
+              <p style="font-size:0.95rem; margin-bottom:12px;"><strong>Instrução do Treino:</strong> ${lesson.exercicios || 'Pratique os exercícios vocálicos mantendo o apoio costodiafragmático e postura ereta.'}</p>
+              <p style="font-size:0.85rem; color:var(--text-secondary);">Dica da Instrutora: Treine diante de um espelho para verificar o relaxamento dos ombros e a expansão lateral das costelas inferiores sem sobrecarga na laringe.</p>
+            </div>
+          </div>
+
+          <div class="callout-box didatico">
+            <div class="callout-header"><i class="fas fa-church"></i> Aplicação no Culto</div>
+            <div class="callout-body">
+              <p style="font-size:0.9rem; color:var(--text-secondary);">
+                Ao entoar os louvores na igreja, lembre-se de que a técnica serve para conduzir a mensagem de louvor a Deus com reverência, clareza e sem esforço que cause fadiga vocal.
+              </p>
+            </div>
+          </div>
+        `;
+      }
+
+      // 8. Atualiza Estado dos Botões de Ação
+      updateLessonActionButtons(lesson.id);
+
+      // 9. Atualiza Estado Ativo na Sidebar
+      document.querySelectorAll(".lesson-nav-item").forEach(el => {
+        el.classList.toggle("active", el.dataset.lessonId === lesson.id);
+      });
+    }
+
+    // ------------------------------------------------------------------------
+    // PULAR TIMESTAMPS NO VÍDEO
+    // ------------------------------------------------------------------------
+    function jumpVideoTimestamp(seconds) {
+      const info = getLessonById(AppState.currentLessonId);
+      if (!info) return;
+
+      const iframe = document.getElementById("lmsVideoFrame");
+      if (iframe) {
+        iframe.src = `https://www.youtube.com/embed/${info.lesson.videoId}?start=${seconds}&autoplay=1&enablejsapi=1&rel=0`;
+        showToast(`Avançando vídeo para trecho selecionado...`);
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // CONTROLE DE ABAS DIDÁTICAS
+    // ------------------------------------------------------------------------
+    function switchLmsTab(tabId) {
+      AppState.activeTab = tabId;
+      document.querySelectorAll(".lms-tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tabId);
+      });
+      document.querySelectorAll(".lms-tab-pane").forEach(pane => {
+        pane.classList.toggle("active", pane.id === tabId);
+      });
+    }
+
+    // ------------------------------------------------------------------------
+    // ACORDEÃO DE MÓDULOS NA SIDEBAR
+    // ------------------------------------------------------------------------
+    function toggleModuleAccordion(modId) {
+      const accordion = document.querySelector(`.module-accordion[data-module-id="${modId}"]`);
+      if (accordion) accordion.classList.toggle("open");
+    }
+
+    // ------------------------------------------------------------------------
+    // PROGRESSO, CONCLUSÃO E FAVORITOS
+    // ------------------------------------------------------------------------
+    function toggleCurrentLessonCompletion() {
+      const id = AppState.currentLessonId;
+      const idx = AppState.completedLessons.indexOf(id);
+      if (idx > -1) {
+        AppState.completedLessons.splice(idx, 1);
+        showToast("Aula desmarcada.");
+      } else {
+        AppState.completedLessons.push(id);
+        showToast("Aula concluída! Parabéns pelo estudo! 🎉");
+      }
+      localStorage.setItem("ptl-completed", JSON.stringify(AppState.completedLessons));
+      updateAllProgressIndicators();
+      updateLessonActionButtons(id);
+    }
+
+    function toggleCurrentLessonFavorite() {
+      const id = AppState.currentLessonId;
+      const idx = AppState.favoriteLessons.indexOf(id);
+      if (idx > -1) {
+        AppState.favoriteLessons.splice(idx, 1);
+        showToast("Aula removida dos favoritos.");
+      } else {
+        AppState.favoriteLessons.push(id);
+        showToast("Aula salva nos favoritos! ⭐");
+      }
+      localStorage.setItem("ptl-favorites", JSON.stringify(AppState.favoriteLessons));
+      updateAllProgressIndicators();
+      updateLessonActionButtons(id);
+    }
+
+    function goToNextLesson() {
+      if (!window.COURSE_DATA) return;
+      const allLessons = [];
+      window.COURSE_DATA.modules.forEach(m => m.lessons.forEach(l => allLessons.push(l.id)));
+      
+      const currentIdx = allLessons.indexOf(AppState.currentLessonId);
+      if (currentIdx > -1 && currentIdx < allLessons.length - 1) {
+        selectLesson(allLessons[currentIdx + 1]);
+      } else {
+        showToast("Você já está na última aula do curso!");
+      }
+    }
+
+    function updateLessonActionButtons(lessonId) {
+      // Botão Concluída
+      const isDone = AppState.completedLessons.includes(lessonId);
+      const completeBtn = document.getElementById("lmsCompleteBtn");
+      if (completeBtn) {
+        completeBtn.classList.toggle("active", isDone);
+        completeBtn.innerHTML = isDone 
+          ? `<i class="fas fa-check-circle" style="color:var(--success);"></i> <span>Concluída</span>`
+          : `<i class="far fa-circle"></i> <span>Marcar como Concluída</span>`;
+      }
+
+      // Botão Favoritar
+      const isFav = AppState.favoriteLessons.includes(lessonId);
+      const favBtn = document.getElementById("lessonFavBtn");
+      if (favBtn) {
+        favBtn.classList.toggle("active", isFav);
+        favBtn.innerHTML = isFav 
+          ? `<i class="fas fa-star" style="color:var(--accent-gold);"></i> <span>Favorita</span>`
+          : `<i class="far fa-star"></i> <span>Favoritar</span>`;
+      }
+    }
+
+    function updateAllProgressIndicators() {
+      const total = window.COURSE_DATA ? window.COURSE_DATA.totalLessons : 58;
+      const completed = AppState.completedLessons.length;
+      const percent = Math.min(100, Math.round((completed / total) * 100));
+
+      // Barra e Porcentagem
+      const bar = document.getElementById("lmsProgressBarFill");
+      if (bar) bar.style.width = `${percent}%`;
+
+      const pctLabel = document.getElementById("lmsProgressPercent");
+      if (pctLabel) pctLabel.textContent = `${percent}%`;
+
+      const cntLabel = document.getElementById("lmsProgressCount");
+      if (cntLabel) cntLabel.textContent = `${completed} de ${total} concluídas`;
+
+      const headerCnt = document.getElementById("headerProgressCount");
+      if (headerCnt) headerCnt.textContent = `${completed}/${total}`;
+
+      // Atualiza ícones de status em todas as aulas da sidebar
+      document.querySelectorAll(".lesson-nav-item").forEach(item => {
+        const id = item.dataset.lessonId;
+        const icon = document.getElementById(`statusIcon_${id}`);
+        const isDone = AppState.completedLessons.includes(id);
+        if (icon) {
+          icon.className = isDone 
+            ? "fas fa-check-circle lesson-status-icon done" 
+            : "far fa-circle lesson-status-icon";
+        }
+
+        // Estrela de favorita
+        let star = item.querySelector(".lesson-fav-star");
+        const isFav = AppState.favoriteLessons.includes(id);
+        if (isFav) {
+          if (!star) {
+            star = document.createElement("i");
+            star.className = "fas fa-star lesson-fav-star";
+            star.title = "Aula Favorita";
+            item.appendChild(star);
+          }
+        } else if (star) {
+          star.remove();
+        }
+
+        // Filtragem se estiver no modo favoritas
+        if (AppState.sidebarFilter === "fav") {
+          item.style.display = isFav ? "flex" : "none";
+        } else {
+          item.style.display = "flex";
+        }
+      });
+
+      // Contador de favoritas
+      const favCountEl = document.getElementById("sidebarFavCount");
+      if (favCountEl) favCountEl.textContent = AppState.favoriteLessons.length;
+    }
+
+    // ------------------------------------------------------------------------
+    // FILTROS DA SIDEBAR (BUSCA E FAVORITAS)
+    // ------------------------------------------------------------------------
+    function setSidebarFilter(mode) {
+      AppState.sidebarFilter = mode;
+      document.getElementById("filterAllBtn").classList.toggle("active", mode === "all");
+      document.getElementById("filterFavBtn").classList.toggle("active", mode === "fav");
+      updateAllProgressIndicators();
+    }
+
+    function filterSidebarLessons() {
+      const term = (document.getElementById("sidebarSearchInput").value || "").toLowerCase().trim();
+      document.querySelectorAll(".lesson-nav-item").forEach(item => {
+        const title = (item.querySelector(".lesson-nav-title")?.textContent || "").toLowerCase();
+        const id = item.dataset.lessonId;
+        const matchesSearch = title.includes(term);
+        const matchesFav = AppState.sidebarFilter === "all" || AppState.favoriteLessons.includes(id);
+        
+        item.style.display = (matchesSearch && matchesFav) ? "flex" : "none";
+      });
+    }
+
+    // ------------------------------------------------------------------------
+    // SINCRONIZAÇÃO E GERAÇÃO DE LINK PESSOAL (#sync=...)
+    // ------------------------------------------------------------------------
+    function generateSyncLink() {
+      const now = new Date();
+      const dateFormatted = now.toLocaleDateString("pt-BR") + " às " + now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+      const payload = {
+        v: 1,
+        ts: now.getTime(),
+        d: dateFormatted,
+        c: AppState.completedLessons,
+        f: AppState.favoriteLessons,
+        l: AppState.currentLessonId
+      };
+
+      const jsonStr = JSON.stringify(payload);
+      const base64 = btoa(encodeURIComponent(jsonStr));
+      const fullUrl = window.location.origin + window.location.pathname + "#sync=" + base64;
+
+      return { fullUrl, dateFormatted, countC: payload.c.length, countF: payload.f.length };
+    }
+
+    function openSyncModal() {
+      const sync = generateSyncLink();
+      const input = document.getElementById("syncUrlInput");
+      if (input) input.value = sync.fullUrl;
+
+      const ts = document.getElementById("syncTimestampDisplay");
+      if (ts) ts.innerHTML = `<i class="fas fa-clock"></i> Progresso salvo até: ${sync.dateFormatted}`;
+
+      const total = window.COURSE_DATA ? window.COURSE_DATA.totalLessons : 58;
+      const completed = AppState.completedLessons.length;
+      const percent = Math.min(100, Math.round((completed / total) * 100));
+
+      document.getElementById("syncStatCompleted").textContent = completed;
+      document.getElementById("syncStatPercent").textContent = `${percent}%`;
+      document.getElementById("syncStatFavorites").textContent = AppState.favoriteLessons.length;
+
+      document.getElementById("syncModal").classList.add("open");
+    }
+
+    function closeSyncModal() {
+      document.getElementById("syncModal").classList.remove("open");
+    }
+
+    function copySyncLink() {
+      const input = document.getElementById("syncUrlInput");
+      if (!input) return;
+      navigator.clipboard.writeText(input.value).then(() => {
+        showToast("Link de progresso copiado! Cole no seu outro aparelho.");
+      }).catch(() => {
+        prompt("Copie o link abaixo para levar a outro aparelho:", input.value);
+      });
+    }
+
+    function sendSyncWhatsApp() {
+      const sync = generateSyncLink();
+      const text = encodeURIComponent(`Paz do Senhor! Este é o meu progresso no curso Pra Teu Louvor (salvo em ${sync.dateFormatted}):\n${sync.fullUrl}`);
+      window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+    }
+
+    function shareSyncViaAirDrop() {
+      const sync = generateSyncLink();
+      if (navigator.share) {
+        navigator.share({
+          title: "Meu Progresso — Pra Teu Louvor",
+          text: `Progresso salvo em ${sync.dateFormatted} (${sync.countC} aulas concluídas).`,
+          url: sync.fullUrl
+        }).catch(() => {});
+      } else {
+        copySyncLink();
+      }
+    }
+
+    function importManualSync() {
+      const input = document.getElementById("importSyncInput");
+      const val = (input.value || "").trim();
+      if (!val || !val.includes("#sync=")) {
+        showToast("Cole um link válido contendo #sync=.");
+        return;
+      }
+      try {
+        const hash = val.substring(val.indexOf("#sync="));
+        const base64 = hash.replace("#sync=", "");
+        const jsonStr = decodeURIComponent(atob(base64));
+        const data = JSON.parse(jsonStr);
+        if (data.c && Array.isArray(data.c)) {
+          applySyncData(data);
+          closeSyncModal();
+          showToast("Progresso restaurado com sucesso! 🎉");
+        }
+      } catch (e) {
+        showToast("Link de sincronização inválido ou corrompido.");
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // COMPARTILHAR CURSO (LINK LIMPO)
+    // ------------------------------------------------------------------------
+    function openShareSiteModal() {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      document.getElementById("shareSiteUrlInput").value = cleanUrl;
+      document.getElementById("shareSiteModal").classList.add("open");
+    }
+
+    function closeShareSiteModal() {
+      document.getElementById("shareSiteModal").classList.remove("open");
+    }
+
+    function copyCleanSiteLink() {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      navigator.clipboard.writeText(cleanUrl).then(() => {
+        showToast("Link oficial do curso copiado!");
+      }).catch(() => {
+        prompt("Copie o link do curso:", cleanUrl);
+      });
+    }
+
+    function shareViaWhatsApp() {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      const text = encodeURIComponent(`Paz do Senhor! Veja este curso completo de Técnica Vocal para o Louvor com a Prof.ª Paula Santana (Igreja Cristã Maranata):\n${cleanUrl}`);
+      window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+    }
+
+    function shareSiteNative() {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      if (navigator.share) {
+        navigator.share({
+          title: "Pra Teu Louvor — Curso de Técnica Vocal",
+          text: "Curso completo de técnica vocal aplicada ao louvor (Igreja Cristã Maranata)",
+          url: cleanUrl
+        }).catch(() => {});
+      } else {
+        copyCleanSiteLink();
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // DETECÇÃO AUTOMÁTICA DE LINK DE PROGRESSO (#sync=...)
+    // ------------------------------------------------------------------------
+    function checkUrlSync() {
+      const hash = window.location.hash;
+      if (!hash.startsWith("#sync=")) return;
+
+      try {
+        const base64 = hash.replace("#sync=", "");
+        const jsonStr = decodeURIComponent(atob(base64));
+        const data = JSON.parse(jsonStr);
+
+        if (data.c && Array.isArray(data.c)) {
+          AppState.detectedPayload = data;
+          document.getElementById("detectedCountC").textContent = data.c.length;
+          document.getElementById("detectedCountF").textContent = (data.f || []).length;
+          document.getElementById("detectedDate").textContent = data.d || "Recente";
+          document.getElementById("detectedSyncModal").classList.add("open");
+        }
+      } catch (err) {
+        console.error("Falha ao ler dados de sincronização:", err);
+      }
+    }
+
+    function confirmImportDetectedSync() {
+      if (AppState.detectedPayload) {
+        applySyncData(AppState.detectedPayload);
+        closeDetectedModal();
+        showToast("Progresso sincronizado com sucesso! 🎉");
+        // Limpa o hash para evitar re-prompt
+        history.replaceState(null, "", window.location.pathname);
+      }
+    }
+
+    function closeDetectedModal() {
+      document.getElementById("detectedSyncModal").classList.remove("open");
+    }
+
+    function applySyncData(data) {
+      AppState.completedLessons = Array.from(new Set([...AppState.completedLessons, ...data.c]));
+      AppState.favoriteLessons = Array.from(new Set([...AppState.favoriteLessons, ...(data.f || [])]));
+      if (data.l) AppState.currentLessonId = data.l;
+
+      localStorage.setItem("ptl-completed", JSON.stringify(AppState.completedLessons));
+      localStorage.setItem("ptl-favorites", JSON.stringify(AppState.favoriteLessons));
+      localStorage.setItem("ptl-last-lesson", AppState.currentLessonId);
+
+      updateAllProgressIndicators();
+      selectLesson(AppState.currentLessonId);
+    }
+
+    // ------------------------------------------------------------------------
+    // LIGHTBOX
+    // ------------------------------------------------------------------------
+    function openLightbox(src, cap) {
+      document.getElementById("lightboxImage").src = src;
+      document.getElementById("lightboxCaption").textContent = cap || "";
+      document.getElementById("lightboxModal").classList.add("open");
+    }
+
+    function closeLightbox() {
+      document.getElementById("lightboxModal").classList.remove("open");
+    }
+
+    // ------------------------------------------------------------------------
+    // RESPONSIVIDADE MOBILE
+    // ------------------------------------------------------------------------
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById("lmsSidebar");
+      const backdrop = document.getElementById("sidebarBackdrop");
+      sidebar.classList.toggle("open");
+      backdrop.classList.toggle("active");
+    }
+
+    function closeMobileSidebar() {
+      const sidebar = document.getElementById("lmsSidebar");
+      const backdrop = document.getElementById("sidebarBackdrop");
+      if (sidebar) sidebar.classList.remove("open");
+      if (backdrop) backdrop.classList.remove("active");
+    }
+
+    // ------------------------------------------------------------------------
+    // TECLADO & FECHAMENTO DE MODAIS
+    // ------------------------------------------------------------------------
+    function setupKeyListeners() {
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeLightbox();
+          closeSyncModal();
+          closeShareSiteModal();
+          closeDetectedModal();
+          closeMobileSidebar();
+        }
+      });
+
+      // Fechar modais ao clicar no backdrop
+      document.querySelectorAll(".modal-overlay, .lightbox-modal").forEach(el => {
+        el.addEventListener("click", (e) => {
+          if (e.target === el) {
+            el.classList.remove("open");
+          }
+        });
+      });
+    }
+
+    // ------------------------------------------------------------------------
+    // TOAST NOTIFICATION
+    // ------------------------------------------------------------------------
+    function showToast(msg) {
+      const existing = document.querySelector(".ptl-toast");
+      if (existing) existing.remove();
+
+      const toast = document.createElement("div");
+      toast.className = "ptl-toast";
+      toast.innerHTML = `<i class="fas fa-check-circle" style="color:#10b981;"></i> <span>${msg}</span>`;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(16px)";
+        toast.style.transition = "all 0.3s ease";
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+  </script>
+
+</body>
+</html>

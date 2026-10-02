@@ -40,7 +40,9 @@ const initialLesson = courseData.modules[0].lessons[0];
       </div>
       <div class="brand-text-group">
         <span class="brand-title-script">Pra Teu Louvor</span>
-        <span class="brand-tag-sub">Aulas de Canto • Igreja Cristã Maranata</span>
+        <span class="brand-tag-sub">
+          <span class="brand-sub-main">Aulas de Canto</span><span class="brand-sub-extra"> • Igreja Cristã Maranata</span>
+        </span>
       </div>
     </div>
 
@@ -61,7 +63,7 @@ const initialLesson = courseData.modules[0].lessons[0];
       <!-- 3. Meu Progresso / Sincronizar via Link -->
       <button class="btn-header-action btn-sync-header" onclick="openSyncModal()" title="Ver e sincronizar seu progresso de estudo em outro aparelho">
         <i class="fas fa-chart-line"></i>
-        <span>Meu Progresso</span>
+        <span class="btn-sync-text">Meu Progresso</span>
         <span class="header-progress-pill" id="headerProgressCount">0/{totalLessons}</span>
       </button>
 
@@ -124,6 +126,16 @@ const initialLesson = courseData.modules[0].lessons[0];
           </button>
           <button class="sidebar-filter-btn" id="filterFavBtn" onclick="setSidebarFilter('fav')">
             <i class="fas fa-star" style="color:var(--accent-gold);"></i> Favoritas (<span id="sidebarFavCount">0</span>)
+          </button>
+        </div>
+
+        <!-- Ações Rápidas Exclusivas do Menu Mobile (PDF e Compartilhar) -->
+        <div class="sidebar-mobile-actions">
+          <a href="/apostila.pdf" download="Apostila-Pra-Teu-Louvor-144-paginas.pdf" target="_blank" class="sidebar-mobile-btn btn-pdf">
+            <i class="fas fa-file-pdf"></i> Baixar Apostila em PDF (144 págs)
+          </a>
+          <button class="sidebar-mobile-btn btn-share" onclick="openShareSiteModal(); closeMobileSidebar();">
+            <i class="fas fa-share-nodes"></i> Compartilhar o Curso
           </button>
         </div>
       </div>

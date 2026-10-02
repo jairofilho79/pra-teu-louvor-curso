@@ -174,7 +174,7 @@ body {
   background: linear-gradient(90deg, #1c050a 0%, #2f0913 40%, #3e1208 75%, #240a05 100%);
   border-bottom: 2px solid transparent;
   border-image: linear-gradient(90deg, #dc2626, #ea580c, #fbbf24) 1;
-  padding: 12px 26px;
+  padding: 10px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -182,27 +182,31 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  height: 72px;
+  box-sizing: border-box;
 }
 
 .brand-wrapper {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   text-decoration: none;
   cursor: pointer;
-  padding: 4px 0;
+  padding: 2px 0;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .brand-icon-box {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-md);
   background: var(--grad-btn);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 16px rgba(234, 88, 12, 0.5);
-  padding: 6px;
+  padding: 5px;
   flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.35);
 }
@@ -216,20 +220,22 @@ body {
 .brand-text-group {
   display: flex;
   flex-direction: column;
-  padding-left: 6px;
+  padding-left: 4px;
+  min-width: 0;
 }
 
 /* Fonte Amsterdam Four Oficial em Negrito para Pra Teu Louvor */
 .brand-title-script {
   font-family: var(--font-brand);
-  font-size: 1.9rem;
-  line-height: 1.15;
+  font-size: 1.85rem;
+  line-height: 1.1;
   font-weight: bold;
   color: #ffffff !important;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(234, 88, 12, 0.35);
   letter-spacing: 0.02em;
   margin: 0;
   padding: 0;
+  white-space: nowrap;
 }
 
 /* Aulas de Canto em Branco Conforme Instruído */
@@ -238,12 +244,13 @@ body {
   font-size: 0.68rem;
   font-weight: 700;
   color: #ffffff !important;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  margin-top: 24px;
+  margin-top: 10px;
   padding-left: 2px;
   opacity: 0.95;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
 }
 
 /* Ações da Header */
@@ -1898,6 +1905,10 @@ body {
 /* ==========================================================================
    RESPONSIVIDADE (MOBILE & TABLETS)
    ========================================================================== */
+.sidebar-mobile-actions {
+  display: none;
+}
+
 @media (max-width: 1024px) {
   .lms-layout {
     grid-template-columns: 320px 1fr;
@@ -1908,8 +1919,50 @@ body {
 }
 
 @media (max-width: 820px) {
+  .site-header {
+    height: 64px;
+    padding: 8px 16px;
+    gap: 12px;
+  }
+
+  .brand-wrapper {
+    gap: 10px;
+  }
+
+  .brand-icon-box {
+    width: 42px;
+    height: 42px;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+  }
+
+  .brand-title-script {
+    font-size: 1.55rem;
+    line-height: 1;
+  }
+
+  .brand-tag-sub {
+    margin-top: 5px;
+    font-size: 0.62rem;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
   .mobile-menu-toggle {
     display: inline-flex;
+    width: 38px;
+    height: 38px;
+  }
+
+  .btn-icon-header {
+    width: 38px;
+    height: 38px;
+  }
+
+  .btn-header-action {
+    padding: 8px 12px;
   }
 
   .lms-layout {
@@ -1918,12 +1971,13 @@ body {
 
   .lms-sidebar {
     position: fixed;
-    top: 72px;
+    top: 64px;
     left: -320px;
     width: 300px;
-    height: calc(100vh - 72px);
+    height: calc(100vh - 64px);
     transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: var(--shadow-xl);
+    z-index: 100;
   }
 
   .lms-sidebar.open {
@@ -1932,13 +1986,15 @@ body {
 
   .sidebar-backdrop {
     position: fixed;
-    top: 72px;
+    top: 64px;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 90;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 95;
     display: none;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
   }
 
   .sidebar-backdrop.active {
@@ -1979,7 +2035,148 @@ body {
 
   .btn-pdf-header span,
   .btn-share-header span,
-  .btn-sync-header span {
+  .btn-sync-header .btn-sync-text {
     display: none;
   }
 }
+
+@media (max-width: 640px) {
+  .site-header {
+    height: 58px;
+    padding: 6px 12px;
+    gap: 8px;
+  }
+
+  .brand-wrapper {
+    gap: 8px;
+  }
+
+  .brand-icon-box {
+    width: 36px;
+    height: 36px;
+    padding: 3px;
+  }
+
+  .brand-title-script {
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+
+  .brand-sub-extra {
+    display: none;
+  }
+
+  .brand-tag-sub {
+    margin-top: 3px;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+  }
+
+  .btn-pdf-header,
+  .btn-share-header {
+    display: none !important;
+  }
+
+  .btn-sync-header {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    gap: 5px;
+    border-radius: var(--radius-sm);
+  }
+
+  .btn-sync-header .header-progress-pill {
+    margin-left: 0;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+  }
+
+  .btn-icon-header {
+    width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
+  }
+
+  .mobile-menu-toggle {
+    width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
+  }
+
+  .lms-sidebar {
+    top: 58px;
+    height: calc(100vh - 58px);
+    width: 85vw;
+    max-width: 320px;
+  }
+
+  .sidebar-backdrop {
+    top: 58px;
+  }
+
+  .sidebar-mobile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border-color);
+  }
+
+  .sidebar-mobile-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .sidebar-mobile-btn.btn-pdf {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+  }
+
+  .sidebar-mobile-btn.btn-share {
+    background: var(--bg-surface-elevated);
+    color: #ffffff !important;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+  }
+
+  .home-hero-card {
+    padding: 22px 14px;
+  }
+
+  .home-hero-title-script {
+    font-size: 2.2rem;
+  }
+
+  .home-hero-sub-gold {
+    font-size: 1.1rem;
+    margin-top: 6px;
+  }
+
+  .home-hero-sub {
+    font-size: 0.88rem;
+  }
+
+  .lms-main {
+    padding: 12px;
+  }
+
+  .modal-card {
+    padding: 20px 16px;
+  }
+
+  .sync-url-input-wrap {
+    flex-direction: column;
+  }
+}
+

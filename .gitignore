@@ -19,7 +19,7 @@ data/audio/
 *.ogg
 
 # Arquivos de pipeline, curadoria e geração local (não necessários no repo web)
-data/
+/data/
 latex/
 prompts/
 scripts/

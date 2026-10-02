@@ -140,8 +140,8 @@ const initialLesson = courseData.modules[0].lessons[0];
                 <div class={`lesson-nav-item ${lesson.id === 'aula-1' ? 'active' : ''}`} data-lesson-id={lesson.id} onclick={`selectLesson('${lesson.id}')`}>
                   <i class="far fa-circle lesson-status-icon" id={`statusIcon_${lesson.id}`}></i>
                   <div class="lesson-nav-title-wrap">
-                    <div class="lesson-nav-title">{lesson.title}</div>
-                    <div class="lesson-nav-meta">{lesson.duration} • {lesson.type}</div>
+                    <div class="lesson-nav-title">Aula {lesson.num} • {lesson.title}</div>
+                    <div class="lesson-nav-meta">{lesson.duration} • {lesson.epNote ? `${lesson.epNote} • ` : ''}{lesson.type === 'teoria_pratica' ? 'Teoria e Prática' : (lesson.type === 'pratica' ? 'Prática Vocal' : 'Fundamentos')}</div>
                   </div>
                 </div>
               ))}
@@ -382,7 +382,7 @@ const initialLesson = courseData.modules[0].lessons[0];
       </div>
 
       <p class="modal-description">
-        Seu progresso (aulas concluídas e favoritas) é salvo diretamente neste navegador. Para continuar seus estudos em outro celular, computador ou tablet, envie o link pessoal gerado abaixo:
+        Seu progresso é salvo diretamente neste dispositivo. Para continuar seus estudos em outro celular, computador ou tablet, envie o link compacto em blocos gerado abaixo:
       </p>
 
       <div class="sync-link-card">
@@ -396,8 +396,13 @@ const initialLesson = courseData.modules[0].lessons[0];
           </button>
         </div>
         <div class="sync-stats-summary">
-          <span class="sync-stat-tag"><strong id="syncStatCompleted">0</strong> aulas concluídas (<span id="syncStatPercent">0%</span>)</span>
-          <span class="sync-stat-tag"><strong id="syncStatFavorites">0</strong> favoritas</span>
+          <span class="sync-stat-tag"><strong id="syncStatCompleted">0</strong> de 58 aulas (<span id="syncStatPercent">0%</span>)</span>
+          <span class="sync-stat-tag"><strong id="syncStatCurrentLesson">Aula 1</strong> atual</span>
+        </div>
+        <div class="sync-blocks-box" id="syncBlocksBox">
+          <div class="sync-blocks-title"><i class="fas fa-layer-group"></i> Estrutura de Estudos em Blocos</div>
+          <div class="sync-blocks-pills" id="syncBlocksPills"></div>
+          <div id="syncGapAlertContainer"></div>
         </div>
       </div>
 
@@ -416,10 +421,10 @@ const initialLesson = courseData.modules[0].lessons[0];
           Recebeu o progresso de outro dispositivo?
         </div>
         <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
-          Cole aqui o link que você enviou do seu outro aparelho para carregar suas aulas:
+          Cole aqui o link ou código que você enviou do seu outro aparelho para carregar suas aulas:
         </p>
         <div class="sync-url-input-wrap">
-          <input type="text" id="importSyncInput" class="sync-url-input" placeholder="Cole o link com #sync= aqui...">
+          <input type="text" id="importSyncInput" class="sync-url-input" placeholder="Cole o link ou código (#p=... ou #sync=...)">
           <button class="btn-action" onclick="importManualSync()">
             <i class="fas fa-file-import"></i> Carregar
           </button>
@@ -501,8 +506,14 @@ const initialLesson = courseData.modules[0].lessons[0];
       <div class="sync-link-card">
         <div style="font-size:0.88rem; line-height:1.7;">
           <div><i class="fas fa-calendar-check" style="color:var(--primary); margin-right:6px;"></i> <strong>Data:</strong> <span id="detectedDate">-</span></div>
-          <div><i class="fas fa-circle-check" style="color:var(--success); margin-right:6px;"></i> <strong>Aulas Concluídas:</strong> <span id="detectedCountC">0</span></div>
-          <div><i class="fas fa-star" style="color:var(--accent-gold); margin-right:6px;"></i> <strong>Aulas Favoritas:</strong> <span id="detectedCountF">0</span></div>
+          <div><i class="fas fa-circle-check" style="color:var(--success); margin-right:6px;"></i> <strong>Aulas Concluídas:</strong> <span id="detectedCountC">0</span> de 58 (<span id="detectedPercent">0%</span>)</div>
+          <div><i class="fas fa-compass" style="color:var(--accent-gold); margin-right:6px;"></i> <strong>Última Aula Estudada:</strong> <span id="detectedLastLesson">Aula 1</span></div>
+          
+          <div class="sync-blocks-box" style="margin-top:14px;">
+            <div class="sync-blocks-title"><i class="fas fa-layer-group"></i> Blocos de Estudo Concluídos</div>
+            <div id="detectedBlocksList" class="sync-blocks-pills"></div>
+            <div id="detectedGapsBox"></div>
+          </div>
         </div>
       </div>
 
@@ -759,11 +770,12 @@ const initialLesson = courseData.modules[0].lessons[0];
 
       // 2. Título e Breadcrumbs
       const titleEl = document.getElementById("lmsLessonTitle");
-      if (titleEl) titleEl.textContent = lesson.title;
+      if (titleEl) titleEl.textContent = `Aula ${lesson.num} • ${lesson.title}`;
 
       const breadcrumbsEl = document.getElementById("lmsBreadcrumbs");
       if (breadcrumbsEl) {
-        breadcrumbsEl.textContent = `Módulo ${module.id} • ${module.title} • ${lesson.date}`;
+        const epBadge = lesson.epNote ? ` • ${lesson.epNote}` : "";
+        breadcrumbsEl.textContent = `Módulo ${module.id}: ${module.title} • Aula ${lesson.orderInMod} de ${module.lessons.length}${epBadge}`;
       }
 
       // 3. Botão do YouTube direto
@@ -1071,26 +1083,166 @@ const initialLesson = courseData.modules[0].lessons[0];
     }
 
     // ------------------------------------------------------------------------
-    // SINCRONIZAÇÃO E GERAÇÃO DE LINK PESSOAL (#sync=...)
+    // ENCODING / DECODING COMPACTO DE PROGRESSO EM BLOCOS HEXADECIMAIS (#p=...)
     // ------------------------------------------------------------------------
+    function toHex(n) { return n.toString(16); }
+    function fromHex(h) { return parseInt(h, 16); }
+
+    function getRanges(nums) {
+      if (!nums || nums.length === 0) return [];
+      const sorted = Array.from(new Set(nums)).sort((a, b) => a - b);
+      const ranges = [];
+      let start = sorted[0];
+      let prev = sorted[0];
+
+      for (let i = 1; i < sorted.length; i++) {
+        const cur = sorted[i];
+        if (cur === prev + 1) {
+          prev = cur;
+        } else {
+          ranges.push([start, prev]);
+          start = cur;
+          prev = cur;
+        }
+      }
+      ranges.push([start, prev]);
+      return ranges;
+    }
+
+    function getMissingNums(nums) {
+      if (!nums || nums.length === 0) return [];
+      const set = new Set(nums);
+      const max = Math.max(...nums);
+      const missing = [];
+      for (let i = 1; i < max; i++) {
+        if (!set.has(i)) missing.push(i);
+      }
+      return missing;
+    }
+
+    function renderBlocksPillsHtml(ranges) {
+      if (!ranges || ranges.length === 0) {
+        return `<span class="sync-block-pill" style="opacity:0.75;"><i class="far fa-circle"></i> Nenhuma aula concluída ainda</span>`;
+      }
+      return ranges.map(([s, e]) => {
+        const label = s === e ? `Aula ${s}` : `Aulas ${s} a ${e} (${e - s + 1} aulas)`;
+        return `<span class="sync-block-pill"><i class="fas fa-layer-group"></i> ${label}</span>`;
+      }).join("");
+    }
+
+    function renderGapAlertHtml(nums, missingNums) {
+      if (missingNums && missingNums.length > 0) {
+        const label = missingNums.length === 1 
+          ? `Aula ${missingNums[0]} não foi assistida` 
+          : `Aulas ${missingNums.join(", ")} não foram assistidas`;
+        return `<div class="sync-gap-alert"><i class="fas fa-triangle-exclamation"></i> <span><strong>Atenção:</strong> ${label} no intervalo de estudos.</span></div>`;
+      } else if (nums && nums.length > 0) {
+        const max = Math.max(...nums);
+        return `<div class="sync-gap-success"><i class="fas fa-circle-check"></i> <span>Excelente! Todas as aulas de 1 a ${max} foram concluídas em sequência contínua.</span></div>`;
+      }
+      return "";
+    }
+
+    function encodeProgressPayload(completedLessonIds, currentLessonId) {
+      const nums = (completedLessonIds || [])
+        .map(id => parseInt(String(id).replace("aula-", ""), 10))
+        .filter(n => !isNaN(n) && n >= 1 && n <= 58);
+
+      const ranges = getRanges(nums);
+      const rangeStr = ranges.length === 0 ? "0" : ranges.map(([s, e]) => s === e ? toHex(s) : `${toHex(s)}-${toHex(e)}`).join(".");
+
+      const curNum = parseInt(String(currentLessonId || "aula-1").replace("aula-", ""), 10) || 1;
+      const curHex = toHex(curNum);
+
+      const now = new Date();
+      const yy = String(now.getFullYear()).slice(-2);
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      const dateCode = `${yy}${mm}${dd}`;
+
+      return `${rangeStr}_${curHex}_${dateCode}`;
+    }
+
+    function decodeProgressPayload(code) {
+      if (!code) return null;
+      const parts = code.trim().split("_");
+      if (parts.length < 2) return null;
+
+      const rangeStr = parts[0];
+      const curHex = parts[1];
+      const dateStr = parts[2] || "";
+
+      const nums = [];
+      if (rangeStr && rangeStr !== "0") {
+        const rTokens = rangeStr.split(".");
+        for (const tok of rTokens) {
+          if (tok.includes("-")) {
+            const [sHex, eHex] = tok.split("-");
+            const s = fromHex(sHex);
+            const e = fromHex(eHex);
+            if (!isNaN(s) && !isNaN(e) && s <= e) {
+              for (let i = s; i <= e; i++) nums.push(i);
+            }
+          } else {
+            const n = fromHex(tok);
+            if (!isNaN(n)) nums.push(n);
+          }
+        }
+      }
+
+      const curNum = fromHex(curHex) || 1;
+      const currentLessonId = `aula-${curNum}`;
+      const sortedNums = Array.from(new Set(nums)).sort((a, b) => a - b);
+      const completedLessons = sortedNums.map(n => `aula-${n}`);
+
+      let dateFormatted = "Recente";
+      if (dateStr.length === 6) {
+        const yy = dateStr.slice(0, 2);
+        const mm = dateStr.slice(2, 4);
+        const dd = dateStr.slice(4, 6);
+        dateFormatted = `${dd}/${mm}/20${yy}`;
+      }
+
+      const ranges = getRanges(sortedNums);
+      const missingNums = getMissingNums(sortedNums);
+
+      return {
+        completedLessons,
+        currentLessonId,
+        curNum,
+        dateFormatted,
+        ranges,
+        missingNums,
+        nums: sortedNums,
+        countC: completedLessons.length
+      };
+    }
+
     function generateSyncLink() {
+      const code = encodeProgressPayload(AppState.completedLessons, AppState.currentLessonId);
+      const fullUrl = window.location.origin + window.location.pathname + "#p=" + code;
+
+      const nums = AppState.completedLessons
+        .map(id => parseInt(String(id).replace("aula-", ""), 10))
+        .filter(n => !isNaN(n) && n >= 1 && n <= 58)
+        .sort((a, b) => a - b);
+
+      const curNum = parseInt(String(AppState.currentLessonId || "aula-1").replace("aula-", ""), 10) || 1;
       const now = new Date();
       const dateFormatted = now.toLocaleDateString("pt-BR") + " às " + now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      const ranges = getRanges(nums);
+      const missingNums = getMissingNums(nums);
 
-      const payload = {
-        v: 1,
-        ts: now.getTime(),
-        d: dateFormatted,
-        c: AppState.completedLessons,
-        f: AppState.favoriteLessons,
-        l: AppState.currentLessonId
+      return {
+        fullUrl,
+        code,
+        dateFormatted,
+        countC: nums.length,
+        curNum,
+        ranges,
+        missingNums,
+        nums
       };
-
-      const jsonStr = JSON.stringify(payload);
-      const base64 = btoa(encodeURIComponent(jsonStr));
-      const fullUrl = window.location.origin + window.location.pathname + "#sync=" + base64;
-
-      return { fullUrl, dateFormatted, countC: payload.c.length, countF: payload.f.length };
     }
 
     function openSyncModal() {
@@ -1102,12 +1254,23 @@ const initialLesson = courseData.modules[0].lessons[0];
       if (ts) ts.innerHTML = `<i class="fas fa-clock"></i> Progresso salvo até: ${sync.dateFormatted}`;
 
       const total = window.COURSE_DATA ? window.COURSE_DATA.totalLessons : 58;
-      const completed = AppState.completedLessons.length;
+      const completed = sync.countC;
       const percent = Math.min(100, Math.round((completed / total) * 100));
 
-      document.getElementById("syncStatCompleted").textContent = completed;
-      document.getElementById("syncStatPercent").textContent = `${percent}%`;
-      document.getElementById("syncStatFavorites").textContent = AppState.favoriteLessons.length;
+      const statCompleted = document.getElementById("syncStatCompleted");
+      if (statCompleted) statCompleted.textContent = completed;
+
+      const statPercent = document.getElementById("syncStatPercent");
+      if (statPercent) statPercent.textContent = `${percent}%`;
+
+      const statCurrent = document.getElementById("syncStatCurrentLesson");
+      if (statCurrent) statCurrent.textContent = `Aula ${sync.curNum}`;
+
+      const blocksPills = document.getElementById("syncBlocksPills");
+      if (blocksPills) blocksPills.innerHTML = renderBlocksPillsHtml(sync.ranges);
+
+      const gapAlert = document.getElementById("syncGapAlertContainer");
+      if (gapAlert) gapAlert.innerHTML = renderGapAlertHtml(sync.nums, sync.missingNums);
 
       document.getElementById("syncModal").classList.add("open");
     }
@@ -1148,23 +1311,51 @@ const initialLesson = courseData.modules[0].lessons[0];
     function importManualSync() {
       const input = document.getElementById("importSyncInput");
       const val = (input.value || "").trim();
-      if (!val || !val.includes("#sync=")) {
-        showToast("Cole um link válido contendo #sync=.");
+      if (!val) {
+        showToast("Cole o link ou código de sincronização.");
         return;
       }
-      try {
-        const hash = val.substring(val.indexOf("#sync="));
-        const base64 = hash.replace("#sync=", "");
-        const jsonStr = decodeURIComponent(atob(base64));
-        const data = JSON.parse(jsonStr);
-        if (data.c && Array.isArray(data.c)) {
+
+      // 1. Tenta formato compacto em blocos (#p=... ou código com _)
+      let code = "";
+      if (val.includes("#p=")) {
+        code = val.substring(val.indexOf("#p=") + 3);
+      } else if (val.includes("p=")) {
+        code = val.substring(val.indexOf("p=") + 2);
+      } else if (val.includes("_")) {
+        code = val;
+      }
+
+      if (code) {
+        const cleanCode = code.split("&")[0].split("?")[0].split("#")[0];
+        const data = decodeProgressPayload(cleanCode);
+        if (data && (data.countC > 0 || data.curNum > 1)) {
           applySyncData(data);
           closeSyncModal();
           showToast("Progresso restaurado com sucesso! 🎉");
+          return;
         }
-      } catch (e) {
-        showToast("Link de sincronização inválido ou corrompido.");
       }
+
+      // 2. Fallback para formato legado (#sync=Base64)
+      if (val.includes("#sync=")) {
+        try {
+          const hash = val.substring(val.indexOf("#sync="));
+          const base64 = hash.replace("#sync=", "");
+          const jsonStr = decodeURIComponent(atob(base64));
+          const legacyData = JSON.parse(jsonStr);
+          if (legacyData.c && Array.isArray(legacyData.c)) {
+            applySyncData(legacyData);
+            closeSyncModal();
+            showToast("Progresso restaurado com sucesso! 🎉");
+            return;
+          }
+        } catch (e) {
+          // segue para erro abaixo
+        }
+      }
+
+      showToast("Link de sincronização inválido ou não reconhecido.");
     }
 
     // ------------------------------------------------------------------------
@@ -1209,26 +1400,83 @@ const initialLesson = courseData.modules[0].lessons[0];
     }
 
     // ------------------------------------------------------------------------
-    // DETECÇÃO AUTOMÁTICA DE LINK DE PROGRESSO (#sync=...)
+    // DETECÇÃO AUTOMÁTICA DE LINK DE PROGRESSO (#p=... ou #sync=...)
     // ------------------------------------------------------------------------
     function checkUrlSync() {
       const hash = window.location.hash;
-      if (!hash.startsWith("#sync=")) return;
+      if (!hash) return;
 
-      try {
-        const base64 = hash.replace("#sync=", "");
-        const jsonStr = decodeURIComponent(atob(base64));
-        const data = JSON.parse(jsonStr);
-
-        if (data.c && Array.isArray(data.c)) {
+      // 1. Novo formato ultra-compacto em blocos hexadecimais (#p=...)
+      if (hash.startsWith("#p=")) {
+        const code = hash.replace("#p=", "");
+        const data = decodeProgressPayload(code);
+        if (data) {
           AppState.detectedPayload = data;
-          document.getElementById("detectedCountC").textContent = data.c.length;
-          document.getElementById("detectedCountF").textContent = (data.f || []).length;
-          document.getElementById("detectedDate").textContent = data.d || "Recente";
+          document.getElementById("detectedDate").textContent = data.dateFormatted;
+          document.getElementById("detectedCountC").textContent = data.countC;
+          const total = window.COURSE_DATA ? window.COURSE_DATA.totalLessons : 58;
+          const pct = Math.min(100, Math.round((data.countC / total) * 100));
+          document.getElementById("detectedPercent").textContent = `${pct}%`;
+          document.getElementById("detectedLastLesson").textContent = `Aula ${data.curNum}`;
+          
+          const blocksEl = document.getElementById("detectedBlocksList");
+          if (blocksEl) blocksEl.innerHTML = renderBlocksPillsHtml(data.ranges);
+
+          const gapsEl = document.getElementById("detectedGapsBox");
+          if (gapsEl) gapsEl.innerHTML = renderGapAlertHtml(data.nums, data.missingNums);
+
           document.getElementById("detectedSyncModal").classList.add("open");
         }
-      } catch (err) {
-        console.error("Falha ao ler dados de sincronização:", err);
+        return;
+      }
+
+      // 2. Compatibilidade com formato legado (#sync=...)
+      if (hash.startsWith("#sync=")) {
+        try {
+          const base64 = hash.replace("#sync=", "");
+          const jsonStr = decodeURIComponent(atob(base64));
+          const legacyData = JSON.parse(jsonStr);
+
+          if (legacyData.c && Array.isArray(legacyData.c)) {
+            const nums = legacyData.c
+              .map(id => parseInt(String(id).replace("aula-", ""), 10))
+              .filter(n => !isNaN(n) && n >= 1 && n <= 58)
+              .sort((a, b) => a - b);
+            const curNum = parseInt(String(legacyData.l || "aula-1").replace("aula-", ""), 10) || 1;
+            const ranges = getRanges(nums);
+            const missingNums = getMissingNums(nums);
+
+            const data = {
+              completedLessons: legacyData.c,
+              favoriteLessons: legacyData.f || [],
+              currentLessonId: legacyData.l || "aula-1",
+              curNum,
+              dateFormatted: legacyData.d || "Recente",
+              ranges,
+              missingNums,
+              nums,
+              countC: legacyData.c.length
+            };
+
+            AppState.detectedPayload = data;
+            document.getElementById("detectedDate").textContent = data.dateFormatted;
+            document.getElementById("detectedCountC").textContent = data.countC;
+            const total = window.COURSE_DATA ? window.COURSE_DATA.totalLessons : 58;
+            const pct = Math.min(100, Math.round((data.countC / total) * 100));
+            document.getElementById("detectedPercent").textContent = `${pct}%`;
+            document.getElementById("detectedLastLesson").textContent = `Aula ${data.curNum}`;
+
+            const blocksEl = document.getElementById("detectedBlocksList");
+            if (blocksEl) blocksEl.innerHTML = renderBlocksPillsHtml(data.ranges);
+
+            const gapsEl = document.getElementById("detectedGapsBox");
+            if (gapsEl) gapsEl.innerHTML = renderGapAlertHtml(data.nums, data.missingNums);
+
+            document.getElementById("detectedSyncModal").classList.add("open");
+          }
+        } catch (err) {
+          console.error("Falha ao ler dados de sincronização legados:", err);
+        }
       }
     }
 
@@ -1247,13 +1495,22 @@ const initialLesson = courseData.modules[0].lessons[0];
     }
 
     function applySyncData(data) {
-      AppState.completedLessons = Array.from(new Set([...AppState.completedLessons, ...data.c]));
-      AppState.favoriteLessons = Array.from(new Set([...AppState.favoriteLessons, ...(data.f || [])]));
-      if (data.l) AppState.currentLessonId = data.l;
+      const incomingCompleted = data.completedLessons || data.c || [];
+      const incomingFavs = data.favoriteLessons || data.f || [];
+      const incomingLast = data.currentLessonId || data.l || "aula-1";
+
+      AppState.completedLessons = Array.from(new Set([...AppState.completedLessons, ...incomingCompleted]));
+      if (incomingFavs.length > 0) {
+        AppState.favoriteLessons = Array.from(new Set([...AppState.favoriteLessons, ...incomingFavs]));
+      }
+      if (incomingLast) {
+        AppState.currentLessonId = incomingLast;
+      }
 
       localStorage.setItem("ptl-completed", JSON.stringify(AppState.completedLessons));
       localStorage.setItem("ptl-favorites", JSON.stringify(AppState.favoriteLessons));
       localStorage.setItem("ptl-last-lesson", AppState.currentLessonId);
+      localStorage.setItem("ptl-started", "true");
 
       updateAllProgressIndicators();
       selectLesson(AppState.currentLessonId);

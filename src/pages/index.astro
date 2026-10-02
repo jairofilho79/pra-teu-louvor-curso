@@ -398,6 +398,7 @@ const initialLesson = courseData.modules[0].lessons[0];
         <div class="sync-stats-summary">
           <span class="sync-stat-tag"><strong id="syncStatCompleted">0</strong> de 58 aulas (<span id="syncStatPercent">0%</span>)</span>
           <span class="sync-stat-tag"><strong id="syncStatCurrentLesson">Aula 1</strong> atual</span>
+          <span class="sync-stat-tag"><strong id="syncStatFavorites">0</strong> favoritas</span>
         </div>
         <div class="sync-blocks-box" id="syncBlocksBox">
           <div class="sync-blocks-title"><i class="fas fa-layer-group"></i> Estrutura de Estudos em Blocos</div>
@@ -508,6 +509,7 @@ const initialLesson = courseData.modules[0].lessons[0];
           <div><i class="fas fa-calendar-check" style="color:var(--primary); margin-right:6px;"></i> <strong>Data:</strong> <span id="detectedDate">-</span></div>
           <div><i class="fas fa-circle-check" style="color:var(--success); margin-right:6px;"></i> <strong>Aulas Concluídas:</strong> <span id="detectedCountC">0</span> de 58 (<span id="detectedPercent">0%</span>)</div>
           <div><i class="fas fa-compass" style="color:var(--accent-gold); margin-right:6px;"></i> <strong>Última Aula Estudada:</strong> <span id="detectedLastLesson">Aula 1</span></div>
+          <div><i class="fas fa-star" style="color:var(--accent-gold); margin-right:6px;"></i> <strong>Aulas Favoritas:</strong> <span id="detectedCountF">0</span></div>
           
           <div class="sync-blocks-box" style="margin-top:14px;">
             <div class="sync-blocks-title"><i class="fas fa-layer-group"></i> Blocos de Estudo Concluídos</div>
@@ -1143,14 +1145,41 @@ const initialLesson = courseData.modules[0].lessons[0];
       return "";
     }
 
-    function encodeProgressPayload(completedLessonIds, currentLessonId) {
-      const nums = (completedLessonIds || [])
+    function rangesToStr(ranges) {
+      if (!ranges || ranges.length === 0) return "0";
+      return ranges.map(([s, e]) => s === e ? toHex(s) : `${toHex(s)}-${toHex(e)}`).join(".");
+    }
+
+    function strToNums(str) {
+      if (!str || str === "0") return [];
+      const nums = [];
+      const tokens = str.split(".");
+      for (const tok of tokens) {
+        if (tok.includes("-")) {
+          const [sHex, eHex] = tok.split("-");
+          const s = fromHex(sHex);
+          const e = fromHex(eHex);
+          if (!isNaN(s) && !isNaN(e) && s <= e) {
+            for (let i = s; i <= e; i++) nums.push(i);
+          }
+        } else {
+          const n = fromHex(tok);
+          if (!isNaN(n)) nums.push(n);
+        }
+      }
+      return nums;
+    }
+
+    function encodeProgressPayload(completedLessonIds, currentLessonId, favoriteLessonIds) {
+      const compNums = (completedLessonIds || [])
         .map(id => parseInt(String(id).replace("aula-", ""), 10))
         .filter(n => !isNaN(n) && n >= 1 && n <= 58);
 
-      const ranges = getRanges(nums);
-      const rangeStr = ranges.length === 0 ? "0" : ranges.map(([s, e]) => s === e ? toHex(s) : `${toHex(s)}-${toHex(e)}`).join(".");
+      const favNums = (favoriteLessonIds || [])
+        .map(id => parseInt(String(id).replace("aula-", ""), 10))
+        .filter(n => !isNaN(n) && n >= 1 && n <= 58);
 
+      const compStr = rangesToStr(getRanges(compNums));
       const curNum = parseInt(String(currentLessonId || "aula-1").replace("aula-", ""), 10) || 1;
       const curHex = toHex(curNum);
 
@@ -1160,7 +1189,9 @@ const initialLesson = courseData.modules[0].lessons[0];
       const dd = String(now.getDate()).padStart(2, "0");
       const dateCode = `${yy}${mm}${dd}`;
 
-      return `${rangeStr}_${curHex}_${dateCode}`;
+      const favStr = favNums.length > 0 ? rangesToStr(getRanges(favNums)) : "0";
+
+      return `${compStr}_${curHex}_${dateCode}_${favStr}`;
     }
 
     function decodeProgressPayload(code) {
@@ -1168,38 +1199,27 @@ const initialLesson = courseData.modules[0].lessons[0];
       const parts = code.trim().split("_");
       if (parts.length < 2) return null;
 
-      const rangeStr = parts[0];
+      const compStr = parts[0];
       const curHex = parts[1];
-      const dateStr = parts[2] || "";
+      const dateCode = parts[2] || "";
+      const favStr = parts[3] || "0";
 
-      const nums = [];
-      if (rangeStr && rangeStr !== "0") {
-        const rTokens = rangeStr.split(".");
-        for (const tok of rTokens) {
-          if (tok.includes("-")) {
-            const [sHex, eHex] = tok.split("-");
-            const s = fromHex(sHex);
-            const e = fromHex(eHex);
-            if (!isNaN(s) && !isNaN(e) && s <= e) {
-              for (let i = s; i <= e; i++) nums.push(i);
-            }
-          } else {
-            const n = fromHex(tok);
-            if (!isNaN(n)) nums.push(n);
-          }
-        }
-      }
-
+      const compNums = strToNums(compStr);
       const curNum = fromHex(curHex) || 1;
+      const favNums = strToNums(favStr);
+
       const currentLessonId = `aula-${curNum}`;
-      const sortedNums = Array.from(new Set(nums)).sort((a, b) => a - b);
+      const sortedNums = Array.from(new Set(compNums)).sort((a, b) => a - b);
       const completedLessons = sortedNums.map(n => `aula-${n}`);
 
+      const sortedFavNums = Array.from(new Set(favNums)).sort((a, b) => a - b);
+      const favoriteLessons = sortedFavNums.map(n => `aula-${n}`);
+
       let dateFormatted = "Recente";
-      if (dateStr.length === 6) {
-        const yy = dateStr.slice(0, 2);
-        const mm = dateStr.slice(2, 4);
-        const dd = dateStr.slice(4, 6);
+      if (dateCode.length === 6) {
+        const yy = dateCode.slice(0, 2);
+        const mm = dateCode.slice(2, 4);
+        const dd = dateCode.slice(4, 6);
         dateFormatted = `${dd}/${mm}/20${yy}`;
       }
 
@@ -1208,18 +1228,21 @@ const initialLesson = courseData.modules[0].lessons[0];
 
       return {
         completedLessons,
+        favoriteLessons,
         currentLessonId,
         curNum,
         dateFormatted,
         ranges,
         missingNums,
         nums: sortedNums,
-        countC: completedLessons.length
+        favNums: sortedFavNums,
+        countC: completedLessons.length,
+        countF: favoriteLessons.length
       };
     }
 
     function generateSyncLink() {
-      const code = encodeProgressPayload(AppState.completedLessons, AppState.currentLessonId);
+      const code = encodeProgressPayload(AppState.completedLessons, AppState.currentLessonId, AppState.favoriteLessons);
       const fullUrl = window.location.origin + window.location.pathname + "#p=" + code;
 
       const nums = AppState.completedLessons
@@ -1232,12 +1255,14 @@ const initialLesson = courseData.modules[0].lessons[0];
       const dateFormatted = now.toLocaleDateString("pt-BR") + " às " + now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       const ranges = getRanges(nums);
       const missingNums = getMissingNums(nums);
+      const countF = (AppState.favoriteLessons || []).length;
 
       return {
         fullUrl,
         code,
         dateFormatted,
         countC: nums.length,
+        countF,
         curNum,
         ranges,
         missingNums,
@@ -1266,6 +1291,9 @@ const initialLesson = courseData.modules[0].lessons[0];
       const statCurrent = document.getElementById("syncStatCurrentLesson");
       if (statCurrent) statCurrent.textContent = `Aula ${sync.curNum}`;
 
+      const statFav = document.getElementById("syncStatFavorites");
+      if (statFav) statFav.textContent = sync.countF;
+
       const blocksPills = document.getElementById("syncBlocksPills");
       if (blocksPills) blocksPills.innerHTML = renderBlocksPillsHtml(sync.ranges);
 
@@ -1291,16 +1319,18 @@ const initialLesson = courseData.modules[0].lessons[0];
 
     function sendSyncWhatsApp() {
       const sync = generateSyncLink();
-      const text = encodeURIComponent(`Paz do Senhor! Este é o meu progresso no curso Pra Teu Louvor (salvo em ${sync.dateFormatted}):\n${sync.fullUrl}`);
+      const favText = sync.countF > 0 ? `, ${sync.countF} favoritas` : "";
+      const text = encodeURIComponent(`Paz do Senhor! Este é o meu progresso no curso Pra Teu Louvor (${sync.countC} aulas concluídas${favText}, salvo em ${sync.dateFormatted}):\n${sync.fullUrl}`);
       window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
     }
 
     function shareSyncViaAirDrop() {
       const sync = generateSyncLink();
+      const favText = sync.countF > 0 ? `, ${sync.countF} favoritas` : "";
       if (navigator.share) {
         navigator.share({
           title: "Meu Progresso — Pra Teu Louvor",
-          text: `Progresso salvo em ${sync.dateFormatted} (${sync.countC} aulas concluídas).`,
+          text: `Progresso salvo em ${sync.dateFormatted} (${sync.countC} aulas concluídas${favText}).`,
           url: sync.fullUrl
         }).catch(() => {});
       } else {
@@ -1329,7 +1359,7 @@ const initialLesson = courseData.modules[0].lessons[0];
       if (code) {
         const cleanCode = code.split("&")[0].split("?")[0].split("#")[0];
         const data = decodeProgressPayload(cleanCode);
-        if (data && (data.countC > 0 || data.curNum > 1)) {
+        if (data && (data.countC > 0 || data.curNum > 1 || data.countF > 0)) {
           applySyncData(data);
           closeSyncModal();
           showToast("Progresso restaurado com sucesso! 🎉");
@@ -1414,6 +1444,9 @@ const initialLesson = courseData.modules[0].lessons[0];
           AppState.detectedPayload = data;
           document.getElementById("detectedDate").textContent = data.dateFormatted;
           document.getElementById("detectedCountC").textContent = data.countC;
+          const favEl = document.getElementById("detectedCountF");
+          if (favEl) favEl.textContent = data.countF;
+
           const total = window.COURSE_DATA ? window.COURSE_DATA.totalLessons : 58;
           const pct = Math.min(100, Math.round((data.countC / total) * 100));
           document.getElementById("detectedPercent").textContent = `${pct}%`;
@@ -1455,12 +1488,16 @@ const initialLesson = courseData.modules[0].lessons[0];
               ranges,
               missingNums,
               nums,
-              countC: legacyData.c.length
+              countC: legacyData.c.length,
+              countF: (legacyData.f || []).length
             };
 
             AppState.detectedPayload = data;
             document.getElementById("detectedDate").textContent = data.dateFormatted;
             document.getElementById("detectedCountC").textContent = data.countC;
+            const favEl = document.getElementById("detectedCountF");
+            if (favEl) favEl.textContent = data.countF;
+
             const total = window.COURSE_DATA ? window.COURSE_DATA.totalLessons : 58;
             const pct = Math.min(100, Math.round((data.countC / total) * 100));
             document.getElementById("detectedPercent").textContent = `${pct}%`;

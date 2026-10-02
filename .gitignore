@@ -27,6 +27,7 @@ site-mockup/
 output/
 requirements.txt
 AGENTS.md
+logo*.jpeg
 
 # Arquivos de saída de compilação intermediários
 *.aux

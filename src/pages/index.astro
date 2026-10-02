@@ -522,6 +522,69 @@ const initialLesson = courseData.modules[0].lessons[0];
        ====================================================================== -->
   <script is:inline src="/courseData.js"></script>
   <script is:inline>
+    // ------------------------------------------------------------------------
+    // PARSER DE MARKDOWN DIDÁTICO -> HTML
+    // ------------------------------------------------------------------------
+    function parseInlineMarkdown(text) {
+      if (!text || typeof text !== "string") return text || "";
+      let out = text;
+      // Code: `code`
+      out = out.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+      // Links: [text](url)
+      out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="prose-link">$1</a>');
+      // Bold: **text**
+      out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      // Italic: *"text"* or *text*
+      out = out.replace(/(^|[^*])\*([^*]+)\*([^*]|$)/g, '$1<em>$2</em>$3');
+      out = out.replace(/\*("?[^*]+"?)\*/g, '<em>$1</em>');
+      // Italic: _text_
+      out = out.replace(/(^|[^_])_([^_]+)_([^_]|$)/g, '$1<em>$2</em>$3');
+      return out;
+    }
+
+    function parseMarkdownBlock(text) {
+      if (!text || typeof text !== "string") return text || "";
+
+      // Se já contém tags HTML
+      if (/<p[\s>]/.test(text)) {
+        let out = text.replace(/<p>\s*&gt;\s*(.*?)<\/p>/gi, '<blockquote class="prose-note">$1</blockquote>');
+        out = out.replace(/<p>\s*>\s*(.*?)<\/p>/gi, '<blockquote class="prose-note">$1</blockquote>');
+        return parseInlineMarkdown(out);
+      }
+
+      // Markdown com listas e parágrafos multilinhas
+      const lines = text.trim().split("\n");
+      let result = [];
+      let inList = false;
+
+      lines.forEach(rawLine => {
+        const line = rawLine.trim();
+        if (!line) return;
+
+        if (line.startsWith("- ") || line.startsWith("* ")) {
+          if (!inList) {
+            result.push("<ul>");
+            inList = true;
+          }
+          const itemContent = line.replace(/^[-*]\s+/, "");
+          result.push(`<li>${parseInlineMarkdown(itemContent)}</li>`);
+        } else {
+          if (inList) {
+            result.push("</ul>");
+            inList = false;
+          }
+          if (line.startsWith("> ")) {
+            result.push(`<blockquote class="prose-note">${parseInlineMarkdown(line.slice(2))}</blockquote>`);
+          } else {
+            result.push(`<p>${parseInlineMarkdown(line)}</p>`);
+          }
+        }
+      });
+
+      if (inList) result.push("</ul>");
+      return result.join("\n");
+    }
+
     // Estado Global da Aplicação LMS
     const AppState = {
       currentLessonId: localStorage.getItem("ptl-last-lesson") || "aula-1",
@@ -716,7 +779,7 @@ const initialLesson = courseData.modules[0].lessons[0];
           tsGrid.innerHTML = lesson.timestamps.map(ts => `
             <button class="timestamp-card-btn" onclick="jumpVideoTimestamp(${ts.sec})">
               <span class="timestamp-time-badge"><i class="fas fa-play" style="font-size:0.55rem;"></i> ${ts.time}</span>
-              <span class="timestamp-desc">${ts.label}</span>
+              <span class="timestamp-desc">${parseInlineMarkdown(ts.label)}</span>
             </button>
           `).join("");
         } else {
@@ -732,7 +795,7 @@ const initialLesson = courseData.modules[0].lessons[0];
             <div class="callout-box objetivos">
               <div class="callout-header"><i class="fas fa-bullseye"></i> Objetivos de Aprendizagem</div>
               <div class="callout-body">
-                <ul>${lesson.objetivos.map(o => `<li>${o}</li>`).join("")}</ul>
+                <ul>${lesson.objetivos.map(o => `<li>${parseInlineMarkdown(o)}</li>`).join("")}</ul>
               </div>
             </div>
           ` : ''}
@@ -741,20 +804,20 @@ const initialLesson = courseData.modules[0].lessons[0];
             <div class="callout-box topicos">
               <div class="callout-header"><i class="fas fa-list-check"></i> Tópicos Abordados</div>
               <div class="callout-body">
-                <ul>${lesson.topicos.map(t => `<li>${t}</li>`).join("")}</ul>
+                <ul>${lesson.topicos.map(t => `<li>${parseInlineMarkdown(t)}</li>`).join("")}</ul>
               </div>
             </div>
           ` : ''}
 
           <div class="prose-text-reading">
-            ${lesson.prose || '<p>Conteúdo em fase de sincronização didática.</p>'}
+            ${parseMarkdownBlock(lesson.prose) || '<p>Conteúdo em fase de sincronização didática.</p>'}
           </div>
 
           ${lesson.notas ? `
             <div class="callout-box didatico">
               <div class="callout-header"><i class="fas fa-chalkboard-user"></i> Orientações Práticas e Observações</div>
               <div class="callout-body">
-                <p>${lesson.notas}</p>
+                ${parseMarkdownBlock(lesson.notas)}
               </div>
             </div>
           ` : ''}

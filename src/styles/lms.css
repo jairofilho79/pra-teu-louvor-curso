@@ -1037,6 +1037,70 @@ body {
   margin-bottom: 6px;
 }
 
+.callout-body strong {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+[data-theme="light"] .callout-body strong {
+  color: var(--text-primary);
+}
+
+.callout-body em {
+  font-style: italic;
+  color: #fde68a;
+}
+
+[data-theme="light"] .callout-body em {
+  color: #b45309;
+}
+
+.inline-code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: rgba(234, 88, 12, 0.15);
+  color: #fed7aa;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(251, 146, 60, 0.3);
+}
+
+[data-theme="light"] .inline-code {
+  background: #ffedd5;
+  color: #9a3412;
+  border-color: #fdba74;
+}
+
+.prose-link {
+  color: var(--accent-gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--transition-fast);
+}
+
+.prose-link:hover {
+  color: #fde047;
+}
+
+.prose-note {
+  margin: 22px 0;
+  padding: 16px 20px;
+  background: rgba(234, 88, 12, 0.12);
+  border-left: 4px solid var(--primary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-size: 0.98rem;
+  line-height: 1.75;
+  color: var(--text-body);
+}
+
+.prose-note strong {
+  color: #ffffff;
+}
+
+[data-theme="light"] .prose-note strong {
+  color: var(--text-primary);
+}
+
 /* Tipografia de Leitura da Apostila */
 .prose-text-reading {
   font-size: 1.05rem;
